@@ -1,4 +1,6 @@
-﻿using MathNet.Numerics;
+﻿// Copyright Matthew Kolbe (2022)
+
+using MathNet.Numerics;
 using BenchmarkDotNet.Attributes;
 using System;
 

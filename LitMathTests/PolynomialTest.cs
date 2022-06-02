@@ -1,4 +1,6 @@
-﻿using LitMath;
+﻿// Copyright Matthew Kolbe (2022)
+
+using LitMath;
 using MathNet.Numerics;
 
 namespace LitMathTests
@@ -57,7 +59,7 @@ namespace LitMathTests
             for (int i = 0; i < n; ++i)
             {
                 var real = Polynomial.Evaluate(x[i], pdub);
-                Assert.AreEqual(y[i], real, 1e-6);
+                Assert.AreEqual(y[i], real, 1e-5);
             }
         }
     }
