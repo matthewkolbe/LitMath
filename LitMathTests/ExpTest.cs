@@ -17,7 +17,7 @@ namespace LitMathTests
                 a[i] = (i - 500) + r.NextDouble();
 
             fixed (double* aa = a)
-            LitExp.E(aa, b, 1000);
+            LitExp.Exp(aa, b, 1000);
 
             for (int i = 0; i < 1000; ++i)
                 Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-8);
@@ -36,7 +36,7 @@ namespace LitMathTests
                     a[i] = (i - n / 2) + r.NextDouble();
 
 
-                LitExp.E(ref a, ref b);
+                LitExp.Exp(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-8);
@@ -55,7 +55,7 @@ namespace LitMathTests
                 a[i] = 708 + 10.1 * i;
 
             fixed (double* aa = a)
-                LitExp.E(aa, b, 121);
+                LitExp.Exp(aa, b, 121);
 
             for (int i = 0; i < 121; ++i)
                 Assert.IsTrue(double.IsInfinity(b[i]));
@@ -71,7 +71,7 @@ namespace LitMathTests
                 a[i] = double.NegativeInfinity;
 
             fixed (double* aa = a)
-                LitExp.E(aa, b, 4);
+                LitExp.Exp(aa, b, 4);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(0.0, b[i]);
@@ -87,7 +87,7 @@ namespace LitMathTests
                 a[i] = double.NaN;
 
             fixed (double* aa = a)
-                LitExp.E(aa, b, 4);
+                LitExp.Exp(aa, b, 4);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
@@ -104,7 +104,7 @@ namespace LitMathTests
                 a[i] = (i - 80f) + (float)r.NextDouble();
 
             fixed (float* aa = a)
-                LitExp.E(aa, b, 160);
+                LitExp.Exp(aa, b, 160);
 
             for (int i = 0; i < 160; ++i)
                 Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-5);
@@ -123,7 +123,7 @@ namespace LitMathTests
                     a[i] = (float)((i - n / 2) + r.NextDouble());
 
 
-                LitExp.E(ref a, ref b);
+                LitExp.Exp(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-5);
@@ -142,7 +142,7 @@ namespace LitMathTests
                 a[i] = 89f + 10.1f * i;
 
             fixed (float* aa = a)
-                LitExp.E(aa, b, 121);
+                LitExp.Exp(aa, b, 121);
 
             for (int i = 0; i < 121; ++i)
                 Assert.IsTrue(float.IsInfinity(b[i]));
@@ -158,7 +158,7 @@ namespace LitMathTests
                 a[i] = float.NegativeInfinity;
 
             fixed (float* aa = a)
-                LitExp.E(aa, b, 4);
+                LitExp.Exp(aa, b, 4);
 
             for (int i = 0; i < 8; ++i)
                 Assert.AreEqual(0.0f, b[i]);
@@ -174,7 +174,7 @@ namespace LitMathTests
                 a[i] = float.NaN;
 
             fixed (float* aa = a)
-                LitExp.E(aa, b, 2);
+                LitExp.Exp(aa, b, 2);
 
             for (int i = 0; i < 2; ++i)
                 Assert.IsTrue(float.IsNaN(b[i]));

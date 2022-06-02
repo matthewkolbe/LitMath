@@ -41,7 +41,7 @@ namespace LitMathBenchmarks
         {
             fixed (double* ex = exps) fixed(double* r = results)
             {
-                LitExp.E(ex, r, N);
+                LitExp.Exp(ex, r, N);
             }
         }
 
@@ -50,7 +50,7 @@ namespace LitMathBenchmarks
         {
             fixed (float* ex = fexps) fixed(float* r = fresults)
             {
-                LitExp.E(ex, r, N);
+                LitExp.Exp(ex, r, N);
             }
         }
     }

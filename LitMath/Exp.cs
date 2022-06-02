@@ -14,12 +14,12 @@ namespace LitMath
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void E(ref Span<double> x, ref Span<double> y)
+        public static void Exp(ref Span<double> x, ref Span<double> y)
         {
             unsafe
             {
                 fixed (double* xx = x) fixed (double* yy = y)
-                    E(xx, yy, x.Length);
+                    Exp(xx, yy, x.Length);
             }
         }
 
@@ -30,12 +30,12 @@ namespace LitMath
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void E(ref Span<float> x, ref Span<float> y)
+        public static void Exp(ref Span<float> x, ref Span<float> y)
         {
             unsafe
             {
                 fixed (float* xx = x) fixed (float* yy = y)
-                    E(xx, yy, x.Length);
+                    Exp(xx, yy, x.Length);
             }
         }
 
@@ -48,26 +48,26 @@ namespace LitMath
         /// <param name="n">The number of xx values to take an exponential of</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void E(double* xx, double* yy, int n)
+        public static unsafe void Exp(double* xx, double* yy, int n)
         {
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 4;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 4;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 4;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 4;
             }
 
-            // Calculautes the remaining sets of 4 values in a standard loop
+            // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += 4)
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
 
             // Gets the last index we left off at 
             var nn = n & LitConstants.Int.MAX_MINUS_THREE;
@@ -81,7 +81,7 @@ namespace LitMath
                     tmpx[j] = xx[j+i];
 
                 var x = Avx.LoadVector256(tmpx);
-                E(ref x, ref x);
+                Exp(ref x, ref x);
 
                 for (; i < n; ++i)
                     yy[i] = x.GetElement(i - nn);
@@ -97,26 +97,26 @@ namespace LitMath
         /// <param name="n">The number of xx values to take an exponential of</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void E(float* xx, float* yy, int n)
+        public static unsafe void Exp(float* xx, float* yy, int n)
         {
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 8;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 8;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 8;
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
                 i += 8;
             }
 
             // Calculautes the remaining sets of 8 values in a standard loop
             for (; i < (n - 7); i += 8)
-                E(xx + i, yy + i);
+                Exp(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%8 != 0)
             if (i != n)
@@ -128,7 +128,7 @@ namespace LitMath
                     tmpx[j] = xx[j + i];
 
                 var x = Avx.LoadVector256(tmpx);
-                E(ref x, ref x);
+                Exp(ref x, ref x);
 
                 for (; i < n; ++i)
                     yy[i] = x.GetElement(i - nn);
@@ -142,10 +142,10 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values/param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void E(double* xx, double* yy)
+        public static unsafe void Exp(double* xx, double* yy)
         {
             var x = Avx.LoadVector256(xx);
-            E(ref x, ref x);
+            Exp(ref x, ref x);
             Avx.Store(yy, x);
         }
 
@@ -156,10 +156,10 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void E(float* xx, float* yy)
+        public static unsafe void Exp(float* xx, float* yy)
         {
             var x = Avx.LoadVector256(xx);
-            E(ref x, ref x);
+            Exp(ref x, ref x);
             Avx.Store(yy, x);
         }
 
@@ -170,7 +170,7 @@ namespace LitMath
         /// <param name="x">A reference to the 4 arguments</param>
         /// <param name="y">The 4 results</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void E(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Exp(ref Vector256<double> x, ref Vector256<double> y)
         {
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
             // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
@@ -232,7 +232,7 @@ namespace LitMath
         /// <param name="x">A reference to the 8 arguments</param>
         /// <param name="y">The 8 results</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void E(ref Vector256<float> x, ref Vector256<float> y)
+        public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
         {
             
 

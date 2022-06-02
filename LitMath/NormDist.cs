@@ -420,7 +420,7 @@ namespace LitMath
             var exsq = Avx.Multiply(xx, xx);
             exsq = Avx.Multiply(exsq, negone);
 
-            LitExp.E(ref exsq, ref exsq);
+            LitExp.Exp(ref exsq, ref exsq);
 
             y = Avx.Multiply(y, exsq);
             y = Avx.Subtract(one, y);
@@ -465,7 +465,7 @@ namespace LitMath
             var exsq = Avx.Multiply(xx, xx);
             exsq = Avx.Multiply(exsq, float_negone);
 
-            LitExp.E(ref exsq, ref exsq);
+            LitExp.Exp(ref exsq, ref exsq);
 
             y = Avx.Multiply(y, exsq);
             y = Avx.Subtract(float_one, y);
