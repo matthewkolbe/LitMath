@@ -7,17 +7,25 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageProjectUrl></PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/matthewkolbe/LitMath</PackageProjectUrl>
     <Copyright>Matthew Kolbe</Copyright>
     <RepositoryUrl>https://github.com/matthewkolbe/LitMath</RepositoryUrl>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Matthew Kolbe</Authors>
     <PackageId>Kolbe.$(AssemblyName)</PackageId>
     <Description>A collection of AVX-256 accelerated mathematical functions for .NET</Description>
     <PackageTags>SIMD;Math;AVX;Intrinsics</PackageTags>
     <PackageIcon></PackageIcon>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
