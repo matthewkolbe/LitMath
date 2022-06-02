@@ -9,7 +9,7 @@ namespace LitMath
     public class LitTrig
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sin(ref Vector256<double> x, out Vector256<double> y)
+        public static void Sin(ref Vector256<double> x, ref Vector256<double> y)
         {
             // Since sin() is periodic around 2pi, this converts x into the range of [0, 2pi]
             var xt = Avx.Subtract(x, Avx.Multiply(LitConstants.Double.Trig.TWOPI, Avx.Floor(Avx.Divide(x, LitConstants.Double.Trig.TWOPI))));
@@ -82,8 +82,40 @@ namespace LitMath
         public static unsafe void Sin(double* xx, double* yy)
         {
             var x = Avx.LoadVector256(xx);
-            Sin(ref x, out Vector256<double> ret);
-            Avx.Store(yy, ret);
+            Sin(ref x, ref x);
+            Avx.Store(yy, x);
+        }
+
+
+        /// <summary>
+        /// Computes Cosine on 4 doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Cos(double* xx, double* yy)
+        {
+            var x = Avx.Add(Avx.LoadVector256(xx), LitConstants.Double.Trig.HALFPI);
+            Sin(ref x, ref x);
+            Avx.Store(yy, x);
+        }
+
+
+        /// <summary>
+        /// Computes Tangent on 4 doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Tan(double* xx, double* yy)
+        {
+            // TODO: This for sure isn't the fastest way to do this, but it's still faster than Math.Tan()
+
+            var sin = Avx.LoadVector256(xx);
+            var cos = Avx.Add(sin, LitConstants.Double.Trig.HALFPI);
+            Sin(ref cos, ref cos);
+            Sin(ref sin, ref sin);
+            Avx.Store(yy, Avx.Divide(sin, cos));
         }
 
 
@@ -98,6 +130,80 @@ namespace LitMath
             {
                 fixed (double* x = xx) fixed (double* y = yy)
                     Sin(x, y, xx.Length);
+            }
+        }
+
+
+        /// <summary>
+        /// Computes Cosine on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        public static void Cos(ref Span<double> xx, ref Span<double> yy)
+        {
+            unsafe
+            {
+                fixed (double* x = xx) fixed (double* y = yy)
+                    Cos(x, y, xx.Length);
+            }
+        }
+
+
+        /// <summary>
+        /// Computes Tangent on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        public static void Tan(ref Span<double> xx, ref Span<double> yy)
+        {
+            unsafe
+            {
+                fixed (double* x = xx) fixed (double* y = yy)
+                    Tan(x, y, xx.Length);
+            }
+        }
+
+
+        /// <summary>
+        /// Computes Cosine on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        /// <param name="n"></param>
+        [SkipLocalsInit]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Cos(double* xx, double* yy, int n)
+        {
+            int i = 0;
+
+            // Calculates values in an unrolled manner if the number of values is large enough
+            for (; i < (n - 15); i += 16)
+            {
+                Cos(xx + i, yy + i);
+                Cos(xx + i + 4, yy + i + 4);
+                Cos(xx + i + 8, yy + i + 8);
+                Cos(xx + i + 12, yy + i + 12);
+            }
+
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 3); i += 4)
+                Cos(xx + i, yy + i);
+
+            // Gets the last index we left off at 
+            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
+
+            // Cleans up any excess individual values (if n%4 != 0)
+            if (nn != n)
+            {
+                var tmpx = stackalloc double[4];
+
+                for (int j = 0; j < 4; ++j)
+                    tmpx[j] = xx[j + i];
+                
+                Cos(xx + i, tmpx);
+
+                for (; i < n; ++i)
+                    yy[i] = tmpx[i - nn];
             }
         }
 
@@ -123,7 +229,7 @@ namespace LitMath
                 Sin(xx + i + 12, yy + i + 12);
             }
 
-            // Calculautes the remaining sets of 4 values in a standard loop
+            // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += 4)
                 Sin(xx + i, yy + i);
 
@@ -138,11 +244,53 @@ namespace LitMath
                 for (int j = 0; j < 4; ++j)
                     tmpx[j] = xx[j + i];
 
-                var x = Avx.LoadVector256(tmpx);
-                Sin(ref x, out Vector256<double> ret);
+                Sin(tmpx, tmpx);
 
                 for (; i < n; ++i)
-                    yy[i] = ret.GetElement(i - nn);
+                    yy[i] = tmpx[i - nn];
+            }
+        }
+
+        /// <summary>
+        /// Computes Tangent on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        /// <param name="n"></param>
+        [SkipLocalsInit]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Tan(double* xx, double* yy, int n)
+        {
+            int i = 0;
+
+            // Calculates values in an unrolled manner if the number of values is large enough
+            for (; i < (n - 15); i += 16)
+            {
+                Tan(xx + i, yy + i);
+                Tan(xx + i + 4, yy + i + 4);
+                Tan(xx + i + 8, yy + i + 8);
+                Tan(xx + i + 12, yy + i + 12);
+            }
+
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 3); i += 4)
+                Tan(xx + i, yy + i);
+
+            // Gets the last index we left off at 
+            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
+
+            // Cleans up any excess individual values (if n%4 != 0)
+            if (nn != n)
+            {
+                var tmpx = stackalloc double[4];
+
+                for (int j = 0; j < 4; ++j)
+                    tmpx[j] = xx[j + i];
+
+                Tan(xx + i, tmpx);
+
+                for (; i < n; ++i)
+                    yy[i] = tmpx[i - nn];
             }
         }
     }
