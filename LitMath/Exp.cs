@@ -9,7 +9,7 @@ namespace LitMath
     public static class LitExp
     {
         /// <summary>
-        /// Calculates n expoentials on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
@@ -25,7 +25,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n expoentials on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
@@ -41,7 +41,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n expoentials on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>
@@ -90,7 +90,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n expoentials on floats via 256-bit SIMD intriniscs. 
+        /// Calculates n exponentials on floats via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>
@@ -137,7 +137,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 4 exponentials on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values/param>
@@ -151,7 +151,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 8 exponentials on floats via 256-bit SIMD intriniscs. 
+        /// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
@@ -165,15 +165,15 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 4 exponentials on doubles via 256-bit SIMD intriniscs.
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
         /// </summary>
-        /// <param name="x">A reference to the 4 arguemnts</param>
+        /// <param name="x">A reference to the 4 arguments</param>
         /// <param name="y">The 4 results</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void E(ref Vector256<double> x, ref Vector256<double> y)
         {
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
-            // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be ininity, and the rest
+            // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
             // zero. We add this to the result at the end, which will force y[1] to be infinity.
             var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Double.Exp.HIGH), LitConstants.Double.Exp.POSITIVE_INFINITY);
 
@@ -214,8 +214,6 @@ namespace LitMath
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int's,
             // since the exponent of a double will never be more than a max int, then from int to long.
-            //var fxint = Avx.ConvertToVector128Int32(fx);
-            //var fxlong = Avx2.ConvertToVector256Int64(fxint);
             fx = Avx2.Add(fx, LitConstants.Double.Exp.MAGIC_LONG_DOUBLE_ADD);
             var fxlong = Vector256.AsInt64(fx);
             fxlong = Avx2.Add(fxlong, LitConstants.Long.ONE_THOUSAND_TWENTY_THREE);
@@ -229,9 +227,9 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 8 exponentials on floats via 256-bit SIMD intriniscs.
+        /// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics.
         /// </summary>
-        /// <param name="x">A reference to the 8 arguemnts</param>
+        /// <param name="x">A reference to the 8 arguments</param>
         /// <param name="y">The 8 results</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void E(ref Vector256<float> x, ref Vector256<float> y)
@@ -239,7 +237,7 @@ namespace LitMath
             
 
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
-            // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be ininity, and the rest
+            // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
             // zero. We add this to the result at the end, which will force y[1] to be infinity.
             var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Float.Exp.HIGH), LitConstants.Float.Exp.POSITIVE_INFINITY);
 

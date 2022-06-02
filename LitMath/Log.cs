@@ -10,9 +10,9 @@ namespace LitMath
     public static class LitLog
     {
         /// <summary>
-        /// Calculates 4 log base 2's on doubles via 256-bit SIMD intriniscs.
+        /// Calculates 4 log base 2's on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
-        /// <param name="x">A reference to the 4 arguemnts</param>
+        /// <param name="x">A reference to the 4 arguments</param>
         /// <param name="y">The 4 results</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log2(ref Vector256<double> x, ref Vector256<double> y)
@@ -52,7 +52,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 8 log base 2's on doubles via 256-bit SIMD intriniscs.
+        /// Calculates 8 log base 2's on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -150,7 +150,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the natural log of 4 doubles
+        /// Calculates the natural log of 4 doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx"></param>
         /// <param name="yy"></param>
@@ -164,7 +164,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n natrural logs on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
@@ -181,7 +181,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n natrural logs on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
@@ -198,7 +198,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n natrural logs on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>
@@ -248,7 +248,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates 4 natrural logs on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates 4 natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>
@@ -262,7 +262,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates n natrural logs on doubles via 256-bit SIMD intriniscs. 
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>

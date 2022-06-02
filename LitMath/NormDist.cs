@@ -10,7 +10,7 @@ namespace LitMath
     {
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="mean">The distribution's means</param>
         /// <param name="sigma">The distribution's sigmas</param>
@@ -28,7 +28,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
         /// <param name="mean">The distribution's means</param>
         /// <param name="sigma">The distribution's sigmas</param>
@@ -46,7 +46,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. . 
         /// </summary>
         /// <param name="mean">The distribution's mean</param>
         /// <param name="sigma">The distribution's sigma</param>
@@ -64,7 +64,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="mean">The distribution's mean</param>
         /// <param name="sigma">The distribution's sigma</param>
@@ -82,7 +82,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
         /// <param name="mean">The distribution's means</param>
         /// <param name="sigma">The distribution's sigmas</param>
@@ -159,7 +159,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
         /// <param name="mean">The distribution's means</param>
         /// <param name="sigma">The distribution's sigmas</param>
@@ -236,7 +236,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
         /// <param name="mean">The distribution's mean</param>
         /// <param name="sigma">The distribution's sigma</param>
@@ -298,7 +298,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intriniscs. 
+        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
         /// <param name="mean">The distribution's mean</param>
         /// <param name="sigma">The distribution's sigma</param>
