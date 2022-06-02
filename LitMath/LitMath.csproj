@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,6 +7,17 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl></PackageProjectUrl>
+    <Copyright>Matthew Kolbe</Copyright>
+    <RepositoryUrl>https://github.com/matthewkolbe/LitMath</RepositoryUrl>
+    <Version>0.1.0</Version>
+    <Authors>Matthew Kolbe</Authors>
+    <PackageId>Kolbe.$(AssemblyName)</PackageId>
+    <Description>A collection of AVX-256 accelerated mathematical functions for .NET</Description>
+    <PackageTags>SIMD;Math;AVX;Intrinsics</PackageTags>
+    <PackageIcon></PackageIcon>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
 </Project>
