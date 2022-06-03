@@ -105,7 +105,7 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(double* xx, double* yy)
+        static unsafe void Sqrt(double* xx, double* yy)
         {
             Avx.Store(yy, Avx.Sqrt(Avx.LoadVector256(xx)));
         }
@@ -117,7 +117,7 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(float* xx, float* yy)
+        static unsafe void Sqrt(float* xx, float* yy)
         {
             Avx.Store(yy, Avx.Sqrt(Avx.LoadVector256(xx)));
         }
