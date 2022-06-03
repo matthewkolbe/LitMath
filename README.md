@@ -8,7 +8,7 @@
  Calculate 4 $e^x$'s at once and store the result in y.
 
  ```
- Span<double> x = new Span<double>(new[] { -3.0, 0.0, 5.5, 3.14159 });
- Span<double> y = new Span<double>(new[] { 0.0, 0.0, 0.0, 0.0 });
- LitExp.E(ref x, ref y);
+Span<double> x = new Span<double>(Enumerable.Range(-20, 20).Select(z => (double)z).ToArray());
+Span<double> y = new Span<double>(new double[x.Length]);
+LitExp.Exp(ref x, ref y);
  ```
