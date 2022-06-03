@@ -189,18 +189,15 @@ namespace LitMath
             for (; i < (n - 3); i += 4)
                 Cos(xx + i, yy + i);
 
-            // Gets the last index we left off at 
-            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
-
             // Cleans up any excess individual values (if n%4 != 0)
-            if (nn != n)
+            if (i != n)
             {
+                var nn = i;
                 var tmpx = stackalloc double[4];
+                for (int j = 0; j < (n - i); j++)
+                    tmpx[j] = xx[i + j];
 
-                for (int j = 0; j < 4; ++j)
-                    tmpx[j] = xx[j + i];
-                
-                Cos(xx + i, tmpx);
+                Cos(tmpx, tmpx);
 
                 for (; i < n; ++i)
                     yy[i] = tmpx[i - nn];
@@ -233,16 +230,13 @@ namespace LitMath
             for (; i < (n - 3); i += 4)
                 Sin(xx + i, yy + i);
 
-            // Gets the last index we left off at 
-            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
-
             // Cleans up any excess individual values (if n%4 != 0)
-            if (nn != n)
+            if (i != n)
             {
+                var nn = i;
                 var tmpx = stackalloc double[4];
-
-                for (int j = 0; j < 4; ++j)
-                    tmpx[j] = xx[j + i];
+                for (int j = 0; j < (n - i); j++)
+                    tmpx[j] = xx[i + j];
 
                 Sin(tmpx, tmpx);
 
@@ -276,18 +270,15 @@ namespace LitMath
             for (; i < (n - 3); i += 4)
                 Tan(xx + i, yy + i);
 
-            // Gets the last index we left off at 
-            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
-
             // Cleans up any excess individual values (if n%4 != 0)
-            if (nn != n)
+            if (i != n)
             {
+                var nn = i;
                 var tmpx = stackalloc double[4];
+                for (int j = 0; j < (n - i); j++)
+                    tmpx[j] = xx[i + j];
 
-                for (int j = 0; j < 4; ++j)
-                    tmpx[j] = xx[j + i];
-
-                Tan(xx + i, tmpx);
+                Tan(tmpx, tmpx);
 
                 for (; i < n; ++i)
                     yy[i] = tmpx[i - nn];

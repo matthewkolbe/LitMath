@@ -69,22 +69,18 @@ namespace LitMath
             for (; i < (n - 3); i += 4)
                 Exp(xx + i, yy + i);
 
-            // Gets the last index we left off at 
-            var nn = n & LitConstants.Int.MAX_MINUS_THREE;
-            
             // Cleans up any excess individual values (if n%4 != 0)
-            if (nn != n)
+            if (i != n)
             {
+                var nn = i;
                 var tmpx = stackalloc double[4];
+                for (int j = 0; j < (n - i); j++)
+                    tmpx[j] = xx[i + j];
 
-                for (int j = 0; j < 4; ++j)
-                    tmpx[j] = xx[j+i];
-
-                var x = Avx.LoadVector256(tmpx);
-                Exp(ref x, ref x);
+                Exp(tmpx, tmpx);
 
                 for (; i < n; ++i)
-                    yy[i] = x.GetElement(i - nn);
+                    yy[i] = tmpx[i - nn];
             }
         }
 
@@ -114,7 +110,7 @@ namespace LitMath
                 i += 8;
             }
 
-            // Calculautes the remaining sets of 8 values in a standard loop
+            // Calculates the remaining sets of 8 values in a standard loop
             for (; i < (n - 7); i += 8)
                 Exp(xx + i, yy + i);
 
@@ -124,14 +120,13 @@ namespace LitMath
                 var nn = i;
                 var tmpx = stackalloc float[8];
 
-                for (int j = 0; j < 8; ++j)
-                    tmpx[j] = xx[j + i];
+                for (int j = 0; j < (n - i); j++)
+                    tmpx[j] = xx[i + j];
 
-                var x = Avx.LoadVector256(tmpx);
-                Exp(ref x, ref x);
+                Exp(tmpx, tmpx);
 
                 for (; i < n; ++i)
-                    yy[i] = x.GetElement(i - nn);
+                    yy[i] = tmpx[i - nn];
             }
         }
 
@@ -140,7 +135,7 @@ namespace LitMath
         /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="xx">A pointer to the first of 4 arguments</param>
-        /// <param name="yy">The return values/param>
+        /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Exp(double* xx, double* yy)
         {

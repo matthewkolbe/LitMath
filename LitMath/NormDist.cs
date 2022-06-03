@@ -137,7 +137,7 @@ namespace LitMath
                 var tmps = stackalloc double[4];
                 var tmpx = stackalloc double[4];
 
-                for (int j = 0; j < 4; ++j)
+                for (int j = 0; j < (n - i); ++j)
                 {
                     tmpm[j] = mean[j + i];
                     tmps[j] = sigma[j + i];
@@ -214,7 +214,7 @@ namespace LitMath
                 var tmps = stackalloc float[8];
                 var tmpx = stackalloc float[8];
 
-                for (int j = 0; j < 8; ++j)
+                for (int j = 0; j < (n - i); ++j)
                 {
                     tmpm[j] = mean[j + i];
                     tmps[j] = sigma[j + i];
