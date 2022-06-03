@@ -5,7 +5,7 @@
 
  There are examples in the benchmark and tests. But here is one to get you started anyway.
 
- Calculate 4 $e^x$'s at once and store the result in y.
+ Calculate `n` $e^x$'s in chunks of 4 and store the result in y.
 
  ```
 int n = 40;
