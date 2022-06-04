@@ -8,6 +8,7 @@ namespace LitMathBenchmarks
     public class DotProductBenchmark
     {
         double[] x, y;
+        float[] xf, yf;
         DenseVector vx, vy;
 
         [Params(64, 512, 100000)]
@@ -21,6 +22,8 @@ namespace LitMathBenchmarks
             y = new double[N];
             vx = new DenseVector(N);
             vy = new DenseVector(N);
+            xf = new float[N];
+            yf = new float[N];
 
             for (int i = 0; i < N; i++)
             {
@@ -28,6 +31,8 @@ namespace LitMathBenchmarks
                 y[i] = i / N;
                 vx[i] = 1.0;
                 vy[i] = i / N;
+                xf[i] = 1.0f;
+                yf[i] = i / N;
             }
         }
 
@@ -47,11 +52,29 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitDot2Double()
+        public unsafe void LitDotFmaDouble()
         {
             fixed (double* xx = x) fixed (double* yy = y)
             {
-                temp = LitBasics.Dot2(xx, yy, N);
+                temp = LitBasics.DotFMA(xx, yy, N);
+            }
+        }
+
+        [Benchmark]
+        public unsafe void LitDotFloat()
+        {
+            fixed (float* xx = xf) fixed (float* yy = yf)
+            {
+                temp = LitBasics.Dot(xx, yy, N);
+            }
+        }
+
+        [Benchmark]
+        public unsafe void LitDotFmaFloat()
+        {
+            fixed (float* xx = xf) fixed (float* yy = yf)
+            {
+                temp = LitBasics.DotFMA(xx, yy, N);
             }
         }
     }

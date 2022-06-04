@@ -406,13 +406,15 @@ namespace LitMath
         }
 
         /// <summary>
-        /// Does a dot product between two arrays
+        /// Does a dot product between two array using fused multiply add. This is secondary because it's benchmarking
+        /// slower than separating out multiply and add on my AMD Ryzen 5900X. It benchmarks faster on my Intel processor,
+        /// but since I use AMD, this is secondary.
         /// </summary>
         /// <param name="x">Input</param>
         /// <param name="y"></param>
         /// <param name="n">Size of the array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe double Dot2(double* x, double* y, int n)
+        public static unsafe double DotFMA(double* x, double* y, int n)
         {
             var vresult = Vector256<double>.Zero;
             int i = 0;
@@ -471,6 +473,47 @@ namespace LitMath
 
             for (; i < (n - 7); i += 8)
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
+
+            var r = Aggregate(ref vresult);
+
+            // clean up the residual
+            for (; i < n; i++)
+                r += x[i] * y[i];
+
+            return r;
+        }
+
+        /// <summary>
+        /// Does a dot product between two array using fused multiply add. This is secondary because it's benchmarking
+        /// slower than separating out multiply and add on my AMD Ryzen 5900X. It benchmarks faster on my Intel processor,
+        /// but since I use AMD, this is secondary.
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe float DotFMA(float* x, float* y, int n)
+        {
+            var vresult = Vector256<float>.Zero;
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 8;
+
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 8;
+
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 8;
+
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
 
             var r = Aggregate(ref vresult);
 
