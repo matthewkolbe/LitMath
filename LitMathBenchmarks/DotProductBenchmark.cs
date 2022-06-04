@@ -10,7 +10,7 @@ namespace LitMathBenchmarks
         double[] x, y;
         DenseVector vx, vy;
 
-        [Params(64, 100000)]
+        [Params(64, 512, 100000)]
         public int N;
         double temp = 0.0;
 
@@ -43,6 +43,15 @@ namespace LitMathBenchmarks
             fixed (double* xx = x) fixed (double* yy = y)
             {
                 temp = LitBasics.Dot(xx, yy, N);
+            }
+        }
+
+        [Benchmark]
+        public unsafe void LitDot2Double()
+        {
+            fixed (double* xx = x) fixed (double* yy = y)
+            {
+                temp = LitBasics.Dot2(xx, yy, N);
             }
         }
     }
