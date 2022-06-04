@@ -46,6 +46,5 @@ namespace LitMathBenchmarks
             fixed (double* xx = x) fixed (double* r = results) fixed (double* pp = p)
                 LitPolynomial.Compute(xx, pp, r, N, order);
         }
-
     }
 }

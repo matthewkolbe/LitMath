@@ -11,7 +11,7 @@ namespace LitMathBenchmarks
         float[] xf, yf;
         DenseVector vx, vy;
 
-        [Params(64, 512, 100000)]
+        [Params(16, 512, 100000)]
         public int N;
         double temp = 0.0;
 
@@ -52,29 +52,11 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitDotFmaDouble()
-        {
-            fixed (double* xx = x) fixed (double* yy = y)
-            {
-                temp = LitBasics.DotFMA(xx, yy, N);
-            }
-        }
-
-        [Benchmark]
         public unsafe void LitDotFloat()
         {
             fixed (float* xx = xf) fixed (float* yy = yf)
             {
                 temp = LitBasics.Dot(xx, yy, N);
-            }
-        }
-
-        [Benchmark]
-        public unsafe void LitDotFmaFloat()
-        {
-            fixed (float* xx = xf) fixed (float* yy = yf)
-            {
-                temp = LitBasics.DotFMA(xx, yy, N);
             }
         }
     }

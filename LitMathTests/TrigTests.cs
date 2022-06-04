@@ -6,22 +6,6 @@ namespace LitMathTests
 {
     internal class TrigTests
     {
-        [Test]
-        public unsafe void AvxSineDoubleAccuracy()
-        {
-            var a = new double[1000];
-            var b = stackalloc double[1000];
-            var r = new Random();
-
-            for (int i = 0; i < 1000; ++i)
-                a[i] = 1000.0 * r.NextDouble() - 500.0;
-
-            fixed (double* aa = a)
-                LitTrig.Sin(aa, b, 1000);
-
-            for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Sin(a[i]) / b[i], 1e-10);
-        }
 
         [Test]
         public void AvxSinDoubleAccuracySpan()
@@ -76,24 +60,6 @@ namespace LitMathTests
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
-        }
-
-
-        [Test]
-        public unsafe void AvxCosDoubleAccuracy()
-        {
-            var a = new double[1000];
-            var b = stackalloc double[1000];
-            var r = new Random();
-
-            for (int i = 0; i < 1000; ++i)
-                a[i] = 1000.0 * r.NextDouble() - 500.0;
-
-            fixed (double* aa = a)
-                LitTrig.Cos(aa, b, 1000);
-
-            for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-10);
         }
 
         [Test]
@@ -205,7 +171,7 @@ namespace LitMathTests
                 LitTrig.Tan(aa, b, 113);
 
             for (int i = 0; i < 113; ++i)
-                Assert.AreEqual(1.0, Math.Tan(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(1.0, Math.Tan(a[i]) / b[i], 1e-7);
         }
 
         [Test]

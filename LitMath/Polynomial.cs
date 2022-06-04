@@ -13,11 +13,9 @@ namespace LitMath
         {
             r = p[n - 1];
 
-            for(int i = n - 2; i >= 0; i--)
-            {
-                r = Avx.Multiply(r, x);
-                r = Avx.Add(r, p[i]);
-            }
+            for (int i = n - 2; i >= 0; i--)
+                r = Fma.MultiplyAdd(r, x, p[i]);
+
         }
 
 
@@ -79,7 +77,7 @@ namespace LitMath
         {
             var pp = GC.AllocateUninitializedArray<Vector256<double>>(order);
 
-            for(int i = 0; i < order; ++i)
+            for (int i = 0; i < order; ++i)
                 pp[i] = Vector256.Create(p[i]);
 
             var rr = Vector256.Create(0.0);
