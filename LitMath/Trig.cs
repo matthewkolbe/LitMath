@@ -29,47 +29,30 @@ namespace LitMath
             // Since sin() on [0, pi] is an even function around pi/2, this "folds" the range into [0, pi/2]. I.e. 3pi/5 becomes 2pi/5.
             xt = Avx.Subtract(LitConstants.Double.Trig.QUARTERPI, LitUtilities.Abs(Avx.Subtract(xt, LitConstants.Double.Trig.HALFPI)));
 
-            // This is a Taylor series approximation of sin() on [0, pi/2] centered at pi/4. Centereing at pi/4 actually happened on
+            // This is a Taylor series approximation of sin() on [0, pi/2] centered at pi/4. Centering at pi/4 actually happened on
             // the previous step where we called "Avx.Subtract(Constants.Double.QUARTERPI". That should have been Avx.Subtract(Constants.Double.HALFPI,
             // but to save computation it was rolled into a single operation.
             y = Vector256.Create(-7.64716373181981647590113198578807E-13);
 
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P14, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P13, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P12, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P11, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P10, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P9, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P8, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P7, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P6, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P5, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P4, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.P3, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.NEGHALF, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.ONE, y);
-            y = Avx.Multiply(y, xt);
-            y = Avx.Add(LitConstants.Double.Trig.ONE, y);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P14);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P13);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P12);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P11);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P10);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P9);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P8);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P7);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P6);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P5);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P4);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.P3);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.NEGHALF);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.ONE);
+            y = Fma.MultiplyAdd(y, xt, LitConstants.Double.Trig.ONE);
 
             y = Avx.Multiply(y, LitConstants.Double.Trig.SIN_OF_QUARTERPI);
 
-            
-            y = Avx.Multiply(y, negend);
-            y = Avx.Add(y, nanend);
+            y = Fma.MultiplyAdd(y, negend, nanend);
         }
 
 

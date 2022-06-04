@@ -193,18 +193,13 @@ namespace LitMath
             var z = Avx.Multiply(fx, LitConstants.Double.Exp.INVERSE_LOG2EF);
             xx = Avx.Subtract(xx, z);
             z = Avx.Multiply(xx, xx);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Double.Exp.P1);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Double.Exp.P2);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Double.Exp.P3);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Double.Exp.P4);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Double.Exp.P5);
-            y = Avx.Multiply(y, z);
-            y = Avx.Add(y, xx);
+
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.P1);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.P2);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.P3);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.P4);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.P5);
+            y = Fma.MultiplyAdd(y, z, xx);
             y = Avx.Add(y, LitConstants.Double.Exp.ONE);
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int's,
@@ -216,8 +211,7 @@ namespace LitMath
             fx = Vector256.AsDouble(fxlong);
 
             // Combines the two exponentials and the end adjustments into the result.
-            y = Avx.Multiply(y, fx);
-            y = Avx.Add(y, end);
+            y = Fma.MultiplyAdd(y, fx, end);
         }
 
 
