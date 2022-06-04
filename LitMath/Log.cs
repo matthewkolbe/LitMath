@@ -90,18 +90,13 @@ namespace LitMath
             y = Avx.Divide(Avx.Subtract(x, LitConstants.Double.Log.ONE), Avx.Add(x, LitConstants.Double.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Avx.Multiply(ysq, LitConstants.Double.Log.ONE_THIRTEENTH);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE_ELEVENTH);
-            rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE_NINTH);
-            rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE_SEVENTH);
-            rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE_FIFTH);
-            rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE_THIRD);
-            rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Double.Log.ONE);
+            var rx = Fma.MultiplyAdd(ysq, LitConstants.Double.Log.ONE_THIRTEENTH, LitConstants.Double.Log.ONE_ELEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_NINTH);
+            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_SEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_FIFTH);
+            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_THIRD);
+            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE);
+
             rx = Avx.Multiply(y, rx);
             y = Avx.Multiply(rx, LitConstants.Double.Log.TWO);
         }
