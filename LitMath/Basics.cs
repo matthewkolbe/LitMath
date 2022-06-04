@@ -385,19 +385,52 @@ namespace LitMath
             {
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
                 i += 4;
-
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
                 i += 4;
-
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
                 i += 4;
-
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
                 i += 4;
             }
 
             for (; i < (n - 3); i += 4)
                 vresult = Avx.Add(Avx.Multiply(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i)), vresult);
+
+            var r = Aggregate(ref vresult);
+
+            // clean up the residual
+            for (; i < n; i++)
+                r += x[i] * y[i];
+
+            return r;
+        }
+
+        /// <summary>
+        /// Does a dot product between two arrays
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe double Dot2(double* x, double* y, int n)
+        {
+            var vresult = Vector256<double>.Zero;
+            int i = 0;
+
+            while (i < (n - 15))
+            {
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 4;
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 4;
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 4;
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
+                i += 4;
+            }
+
+            for (; i < (n - 3); i += 4)
+                vresult = Fma.MultiplyAdd(Avx.LoadVector256(x + i), Avx.LoadVector256(y + i), vresult);
 
             var r = Aggregate(ref vresult);
 
