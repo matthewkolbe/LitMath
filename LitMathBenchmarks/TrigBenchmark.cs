@@ -9,7 +9,7 @@ namespace LitMathBenchmarks
     {
         double[] x, results;
 
-        [Params(64, 100000)]
+        [Params(32, 50000)]
         public int N;
         double temp = 0.0;
 

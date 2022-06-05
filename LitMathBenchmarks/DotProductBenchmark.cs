@@ -11,7 +11,7 @@ namespace LitMathBenchmarks
         float[] xf, yf;
         DenseVector vx, vy;
 
-        [Params(16, 512, 100000)]
+        [Params(16, 512, 1000000)]
         public int N;
         double temp = 0.0;
 
