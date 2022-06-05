@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/matthewkolbe/LitMath</PackageProjectUrl>
     <Copyright>Matthew Kolbe</Copyright>
     <RepositoryUrl>https://github.com/matthewkolbe/LitMath</RepositoryUrl>
-    <Version>0.1.3</Version>
+    <Version>0.2.0</Version>
     <Authors>Matthew Kolbe</Authors>
     <PackageId>Kolbe.$(AssemblyName)</PackageId>
     <Description>A collection of AVX-256 accelerated mathematical functions for .NET</Description>
