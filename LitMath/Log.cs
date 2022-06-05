@@ -46,7 +46,8 @@ namespace LitMath
 
             LogApprox(ref d, ref d);
 
-            y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Double.Log.LOG2EF), LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
+            y = Avx.Add(Fma.MultiplyAdd(d, LitConstants.Double.Log.LOG2EF, LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
+            //y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Double.Log.LOG2EF), LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
 
@@ -74,6 +75,8 @@ namespace LitMath
 
             LogApprox(ref d, ref d);
 
+
+            //y = Avx.Add(Fma.MultiplyAdd(d, LitConstants.Float.Log.LOG2EF, LitConstants.Float.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Float.Log.LOG2EF), LitConstants.Float.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
