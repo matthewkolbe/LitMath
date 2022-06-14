@@ -417,7 +417,7 @@ namespace LitMath
 
             var r = Aggregate(ref vr1);
 
-            // clean up the residual
+            // clean up the residual without AVX
             for (; i < n; i++)
                 r += x[i] * y[i];
 
@@ -473,7 +473,7 @@ namespace LitMath
 
             var r = Aggregate(ref vr1);
 
-            // clean up the residual
+            // clean up the residual without AVX
             for (; i < n; i++)
                 r += x[i] * y[i];
 
