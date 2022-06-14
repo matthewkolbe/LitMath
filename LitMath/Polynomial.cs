@@ -70,7 +70,7 @@ namespace LitMath
         /// <param name="x">Arguments</param>
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
-        /// <param name="N">Length of x</param>
+        /// <param name="N">Length of x (must be mod4)</param>
         /// <param name="order">Length of p</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Compute(double* x, double* p, double* r, int N, int order)
@@ -98,7 +98,7 @@ namespace LitMath
         /// <param name="x">Arguments</param>
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
-        /// <param name="N">Length of x</param>
+        /// <param name="N">Length of x (must be mod8)</param>
         /// <param name="order">Length of p</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Compute(float* x, float* p, float* r, int N, int order)
