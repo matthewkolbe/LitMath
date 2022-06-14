@@ -92,33 +92,39 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void CDF(double* mean, double* sigma, double*x, double* y, int n)
         {
+            const int VSZ = 4;
+
             int i = 0;
 
-            for (; i < (n - 15); i += 16)
+            while (i < (n - 15))
             {
                 var m = Avx.LoadVector256(mean + i);
                 var s = Avx.LoadVector256(sigma + i);
                 var xx = Avx.LoadVector256(x + i);
                 CDF(ref m, ref s, ref xx, ref s);
                 Avx.Store(y + i, s);
+                i += VSZ;
 
-                m = Avx.LoadVector256(mean + i + 4);
-                s = Avx.LoadVector256(sigma + i + 4);
-                xx = Avx.LoadVector256(x + i + 4);
+                m = Avx.LoadVector256(mean + i);
+                s = Avx.LoadVector256(sigma + i);
+                xx = Avx.LoadVector256(x + i);
                 CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 4, s);
+                Avx.Store(y + i, s);
+                i += VSZ;
 
-                m = Avx.LoadVector256(mean + i + 8);
-                s = Avx.LoadVector256(sigma + i + 8);
-                xx = Avx.LoadVector256(x + i + 8);
+                m = Avx.LoadVector256(mean + i);
+                s = Avx.LoadVector256(sigma + i);
+                xx = Avx.LoadVector256(x + i);
                 CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 8, s);
+                Avx.Store(y + i, s);
+                i += VSZ;
 
-                m = Avx.LoadVector256(mean + i + 12);
-                s = Avx.LoadVector256(sigma + i + 12);
-                xx = Avx.LoadVector256(x + i + 12);
+                m = Avx.LoadVector256(mean + i);
+                s = Avx.LoadVector256(sigma + i);
+                xx = Avx.LoadVector256(x + i);
                 CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 12, s);
+                Avx.Store(y + i, s);
+                i += VSZ;
             }
 
             for (; i < (n - 3); i+= 4)
