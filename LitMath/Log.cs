@@ -205,38 +205,45 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Ln(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            if(n< VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Ln(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
                 Ln(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 Ln(xx + i, yy + i);
 
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Ln(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Ln(xx + i, yy + i);
             }
         }
 
@@ -265,37 +272,44 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Ln(float* xx, float* yy, int n)
         {
+            const int VSZ = 8;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc float[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Ln(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
                 Ln(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Ln(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 8 values in a standard loop
-            for (; i < (n - 7); i += 8)
+            for (; i < (n - 7); i += VSZ)
                 Ln(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%8 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc float[8];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Ln(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - 8;
+                Ln(xx + i, yy + i);
             }
         }
     }

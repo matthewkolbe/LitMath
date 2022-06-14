@@ -50,37 +50,47 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Exp(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            // if n < 4, then we handle the special case by creating a 4 element array to work with
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Exp(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+
+                return;
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
                 Exp(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 4;
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 Exp(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Exp(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Exp(xx + i, yy + i);
             }
         }
 
@@ -95,38 +105,47 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Exp(float* xx, float* yy, int n)
         {
+            const int VSZ = 8;
+
+            // if n < 8, then we handle the special case by creating a 4 element array to work with
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc float[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Exp(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+
+                return;
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
                 Exp(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
                 Exp(xx + i, yy + i);
-                i += 8;
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 8 values in a standard loop
-            for (; i < (n - 7); i += 8)
+            for (; i < (n - 7); i += VSZ)
                 Exp(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%8 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc float[8];
-
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Exp(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Exp(xx + i, yy + i);
             }
         }
 

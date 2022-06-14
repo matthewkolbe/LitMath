@@ -157,33 +157,44 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Cos(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Cos(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            for (; i < (n - 15); i += 16)
+            while (i < (n - 15))
             {
                 Cos(xx + i, yy + i);
-                Cos(xx + i + 4, yy + i + 4);
-                Cos(xx + i + 8, yy + i + 8);
-                Cos(xx + i + 12, yy + i + 12);
+                i += VSZ;
+                Cos(xx + i, yy + i);
+                i += VSZ;
+                Cos(xx + i, yy + i);
+                i += VSZ;
+                Cos(xx + i, yy + i);
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 Cos(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Cos(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Cos(xx + i, yy + i);
             }
         }
 
@@ -198,33 +209,44 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Sin(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Sin(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            for (; i < (n - 15); i += 16)
+            while (i < (n - 15))
             {
                 Sin(xx + i, yy + i);
-                Sin(xx + i + 4, yy + i + 4);
-                Sin(xx + i + 8, yy + i + 8);
-                Sin(xx + i + 12, yy + i + 12);
+                i += VSZ;
+                Sin(xx + i, yy + i);
+                i += VSZ;
+                Sin(xx + i, yy + i);
+                i += VSZ;
+                Sin(xx + i, yy + i);
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 Sin(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Sin(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Sin(xx + i, yy + i);
             }
         }
 
@@ -238,33 +260,44 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Tan(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Tan(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            for (; i < (n - 15); i += 16)
+            while (i < (n - 15))
             {
                 Tan(xx + i, yy + i);
-                Tan(xx + i + 4, yy + i + 4);
-                Tan(xx + i + 8, yy + i + 8);
-                Tan(xx + i + 12, yy + i + 12);
+                i += VSZ;
+                Tan(xx + i, yy + i);
+                i += VSZ;
+                Tan(xx + i, yy + i);
+                i += VSZ;
+                Tan(xx + i, yy + i);
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 Tan(xx + i, yy + i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Tan(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Tan(xx + i, yy + i);
             }
         }
     }
