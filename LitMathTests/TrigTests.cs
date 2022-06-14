@@ -14,7 +14,7 @@ namespace LitMathTests
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i + r.NextDouble();
@@ -32,7 +32,7 @@ namespace LitMathTests
         {
             var a = new double[113];
             var b = stackalloc double[113];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
@@ -69,7 +69,7 @@ namespace LitMathTests
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i + r.NextDouble();
@@ -87,7 +87,7 @@ namespace LitMathTests
         {
             var a = new double[113];
             var b = stackalloc double[113];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
@@ -125,7 +125,7 @@ namespace LitMathTests
         {
             var a = new double[1000];
             var b = stackalloc double[1000];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
                 a[i] = 1000.0 * r.NextDouble() - 500.0;
@@ -144,7 +144,7 @@ namespace LitMathTests
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i + r.NextDouble();
@@ -162,7 +162,7 @@ namespace LitMathTests
         {
             var a = new double[113];
             var b = stackalloc double[113];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
