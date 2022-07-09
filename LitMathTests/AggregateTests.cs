@@ -26,5 +26,19 @@ namespace LitMathTests
 
             Assert.AreEqual(y, yy, 1e-5f);
         }
+
+        [Test]
+        public unsafe void DoubleSpanAggreationAccuracy()
+        {
+            var r = new Random(10);
+
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 10001 })
+            {
+                var x = new Span<double>(Enumerable.Range(0, n).Select(z => r.NextDouble() - 0.5).ToArray());
+                var y = LitBasics.Aggregate(ref x);
+
+                Assert.AreEqual(y, x.ToArray().Sum(), 1e-10);
+            }
+        }
     }
 }
