@@ -127,6 +127,22 @@ namespace LitMath
 
 
         /// <summary>
+        /// Sums all the values of x
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Aggregate(ref Span<double> x)
+        {
+            unsafe
+            {
+                fixed (double* xx = x)
+                    return Aggregate(xx, x.Length);
+            }
+        }
+
+
+        /// <summary>
         /// Multiplies every element of an array by a constant
         /// </summary>
         /// <param name="v">Input</param>
@@ -480,5 +496,60 @@ namespace LitMath
             return r;
         }
 
+
+        /// <summary>
+        /// Sums all the elements of x
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static unsafe double Aggregate(double* x, int n)
+        {
+            const int VSZ = 4;
+            int i = 0;
+            var vr1 = Vector256<double>.Zero;
+
+            if (n > 31)
+            {
+                var vr2 = Vector256<double>.Zero;
+                var vr3 = Vector256<double>.Zero;
+                var vr4 = Vector256<double>.Zero;
+
+                while (i < (n - 31))
+                {
+                    vr1 = Avx.Add(Avx.LoadVector256(x + i), vr1);
+                    i += VSZ;
+                    vr2 = Avx.Add(Avx.LoadVector256(x + i), vr2);
+                    i += VSZ;
+                    vr3 = Avx.Add(Avx.LoadVector256(x + i), vr3);
+                    i += VSZ;
+                    vr4 = Avx.Add(Avx.LoadVector256(x + i), vr4);
+                    i += VSZ;
+                    vr1 = Avx.Add(Avx.LoadVector256(x + i), vr1);
+                    i += VSZ;
+                    vr2 = Avx.Add(Avx.LoadVector256(x + i), vr2);
+                    i += VSZ;
+                    vr3 = Avx.Add(Avx.LoadVector256(x + i), vr3);
+                    i += VSZ;
+                    vr4 = Avx.Add(Avx.LoadVector256(x + i), vr4);
+                    i += VSZ;
+                }
+
+                vr3 = Avx.Add(vr3, vr4);
+                vr1 = Avx.Add(vr1, vr2);
+                vr1 = Avx.Add(vr1, vr3);
+            }
+
+            for (; i < (n - 3); i += 4)
+                vr1 = Avx.Add(Avx.LoadVector256(x + i), vr1);
+
+            var r = Aggregate(ref vr1);
+
+            // clean up the residual without AVX
+            for (; i < n; i++)
+                r += x[i];
+
+            return r;
+        }
     }
 }
