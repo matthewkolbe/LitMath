@@ -17,6 +17,23 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Sqrt(double* xx, double* yy, int n)
         {
+            const int VSZ = 4;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Sqrt(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+
+                return;
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
@@ -39,16 +56,8 @@ namespace LitMath
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Sqrt(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Sqrt(xx + i, yy + i);
             }
         }
 
