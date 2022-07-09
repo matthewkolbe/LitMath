@@ -27,7 +27,7 @@ namespace LitMathTests
             {
                 var a = stackalloc double[n];
                 var b = new double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                 {
@@ -63,7 +63,7 @@ namespace LitMathTests
             {
                 var a = stackalloc double[n];
                 var b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = r.NextDouble() - 0.5;
@@ -82,7 +82,7 @@ namespace LitMathTests
             {
                 var a = stackalloc int[n];
                 var b = stackalloc int[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
@@ -101,7 +101,7 @@ namespace LitMathTests
             {
                 var a = stackalloc float[n];
                 var b = stackalloc float[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)(r.NextDouble() - 0.5);
@@ -126,4 +126,5 @@ namespace LitMathTests
             Assert.AreEqual(b.GetElement(3), 1000000.0);
         }
     }
+
 }

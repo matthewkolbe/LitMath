@@ -10,7 +10,7 @@ namespace LitMathTests
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (i + 1) + r.NextDouble();
@@ -30,7 +30,7 @@ namespace LitMathTests
             {
                 Span<float> a = stackalloc float[n];
                 Span<float> b = stackalloc float[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)((i + 1) + r.NextDouble());

@@ -15,7 +15,7 @@ namespace LitMathTests
             var x = new double[n];
             var y = new double[n];
             var p = new double[m];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < n; i++)
                 x[i] = r.NextDouble();
@@ -42,7 +42,7 @@ namespace LitMathTests
             var y = new float[n];
             var p = new float[m];
             var pdub = new double[m];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < n; i++)
                 x[i] = (float)r.NextDouble();

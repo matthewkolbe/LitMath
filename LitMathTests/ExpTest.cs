@@ -11,7 +11,7 @@ namespace LitMathTests
         {
             var a = new double[1000];
             var b = stackalloc double[1000];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
                 a[i] = (i - 500) + r.NextDouble();
@@ -30,7 +30,7 @@ namespace LitMathTests
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (i - n / 2) + r.NextDouble();
@@ -98,7 +98,7 @@ namespace LitMathTests
         {
             var a = new float[160];
             var b = stackalloc float[160];
-            var r = new Random();
+            var r = new Random(10);
 
             for (int i = 0; i < 160; ++i)
                 a[i] = (i - 80f) + (float)r.NextDouble();
@@ -117,7 +117,7 @@ namespace LitMathTests
             {
                 Span<float> a = stackalloc float[n];
                 Span<float> b = stackalloc float[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)((i - n / 2) + r.NextDouble());

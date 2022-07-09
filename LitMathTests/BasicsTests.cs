@@ -13,7 +13,7 @@ namespace LitMathTests
             {
                 var a = stackalloc double[n];
                 var b = stackalloc double[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                 {
@@ -35,7 +35,7 @@ namespace LitMathTests
             {
                 var a = stackalloc float[n];
                 var b = stackalloc float[n];
-                var r = new Random();
+                var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                 {
