@@ -2,6 +2,8 @@
 
 using BenchmarkDotNet.Attributes;
 using System;
+using System.Threading.Tasks;
+using MKLNET;
 
 namespace LitMathBenchmarks
 {
@@ -10,9 +12,10 @@ namespace LitMathBenchmarks
         double[] exps, results;
         float[] fexps, fresults;
 
-        [Params(64, 100000)]
+        [Params(4, 64, 512, 120000)]
         public int N;
         double temp = 0.0;
+        int cores = Environment.ProcessorCount;
 
         [GlobalSetup]
         public void SetUp()
@@ -39,11 +42,37 @@ namespace LitMathBenchmarks
         [Benchmark]
         public unsafe void LitExpDouble()
         {
-            fixed (double* ex = exps) fixed(double* r = results)
-            {
+            fixed (double* ex = exps) fixed (double* r = results)
                 LitExp.Exp(ex, r, N);
+        }
+
+        [Benchmark]
+        public unsafe void LitExpDoubleParallel()
+        {
+            if (N < 10000)
+            {
+                fixed (double* ex = exps) fixed (double* r = results)
+                    LitExp.Exp(ex, r, N);
+
+            }
+            else
+            {
+                var n = N / cores;
+
+                Parallel.For(0, cores, i =>
+                {
+                    fixed (double* ex = exps) fixed (double* r = results)
+                        LitExp.Exp(ex + i*n, r + i*n, n);
+                });
             }
         }
+
+        [Benchmark]
+        public unsafe void MklNet()
+        {
+            Vml.Exp(exps, results);
+        }
+
 
         [Benchmark]
         public unsafe void LitExpFloat()
