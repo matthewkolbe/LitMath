@@ -17,5 +17,5 @@ LitExp.Exp(ref x, ref y);
 ## Parallel Processing
 LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, this it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
  
-## Warnings and Friendly Advise
+## Warnings and Friendly Advice
 The only reason you should be here is that you're trying to squeeze every ounce of performance out of your math problem. To this end, please keep in mind that `LitMath` is only one possible tool for a small subset of use cases, and I provide no guarantees or endorsements that it is the best solution for your problem. I made it because I don't have an AVX-512 enabled processor, and I need to compute these functions on small to medium sized arrays of `double`s, and I'm locked into C# for other reasons, and because this is the best I could do. Optimization is a complex topic balancing error tolerances, hardware availability, compilers, language support, and so on. From what I can tell, the gold standard for doing problems like the ones supported here are via Intel's oneAPI (C# wrapper: [MKL.NET](https://github.com/MKL-NET/MKL.NET)). Unfortunately, at the small-to-medium array sizes I'm concerned with, `DllImport`ing eats up too much time. 
