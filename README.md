@@ -15,4 +15,4 @@ LitExp.Exp(ref x, ref y);
  ```
  
 ## Parallel Processing
-LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, this it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
+LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
