@@ -55,6 +55,83 @@ namespace LitMath
             y = Fma.MultiplyAdd(y, negend, nanend);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Sinh(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            LitExp.Exp(ref x, ref y);
+            var iy = Avx.Divide(LitConstants.Double.Trig.ONE, y);
+            y = Avx.Multiply(LitConstants.Double.Trig.HALF, Avx.Subtract(y, iy));
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Cosh(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            LitExp.Exp(ref x, ref y);
+            var iy = Avx.Divide(LitConstants.Double.Trig.ONE, y);
+            y = Avx.Multiply(LitConstants.Double.Trig.HALF, Avx.Add(y, iy));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Tanh(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            LitExp.Exp(ref x, ref y);
+            var iy = Avx.Divide(LitConstants.Double.Trig.ONE, y);
+            y = Avx.Divide(Avx.Subtract(y, iy), Avx.Add(y, iy));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ASinh(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            y = Avx.Add(Avx.Multiply(x, x), LitConstants.Double.Trig.ONE);
+            y = Avx.Sqrt(y);
+            x = Avx.Add(x, y);
+            LitLog.Ln(ref x, ref y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ACosh(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            y = Avx.Subtract(Avx.Multiply(x, x), LitConstants.Double.Trig.ONE);
+            y = Avx.Sqrt(y);
+            x = Avx.Add(x, y);
+            LitLog.Ln(ref x, ref y);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ATan(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            // WARNING: I made this one up. This should be extremely suspicious, for every other implementation
+            // in this library is something I copied. The algorithm is simply a order 20 linear regression
+            // on x/(x+PI/3). Testing has shown less than 1e-8 relative error (i.e. abs(real/model-1)<1e-8), and
+            // meaningful speedups. But nevertheless, use at your own risk. Also, I'm open to suggestions about
+            // better ways to do this as well.
+
+
+            // This algorithm leverages the fact that ATan is an odd function, and converts negative
+            // inputs to positive ones, and changes the output sign at the end.
+            var negend = Avx.CompareLessThan(x, LitConstants.Double.Trig.ZERO);
+            negend = Avx.And(negend, LitConstants.Double.Trig.NEGATIVE_TWO);
+            negend = Avx.Add(negend, LitConstants.Double.Trig.ONE);
+
+            // Ensures NaN inputs are NaN outputs
+            var nanend = Avx.CompareNotEqual(x, x);
+
+            // Converts makes xt = x/(x+PI/3)
+            var xt = Avx.AndNot(LitConstants.Double.Trig.NEGZERO, x);
+            xt = Avx.Divide(xt, Avx.Add(LitConstants.Double.Trig.THIRDPI, xt));
+
+            // This is how we handle infinity cases. xt is NaN at this point only if it started out as infinity or
+            // NaN. So, we force the value to 1.0 (i.e. lim x-> inf of 1/(1+PI/3)), then the NaN case is overridden
+            // at the end with nanend.
+            xt = Avx.Add(Avx.And(Avx.CompareEqual(xt, xt), xt), Avx.And(Avx.CompareNotEqual(xt, xt), LitConstants.Double.Trig.ONE));
+
+            var p = LitConstants.Double.Trig.AT;
+            LitPolynomial.OrderN(ref xt, ref p, ref y, LitConstants.Double.Trig.ATORDER);
+            y = Fma.MultiplyAdd(y, negend, nanend);
+        }
+
 
         /// <summary>
         /// Computes Sine on 4 doubles
@@ -103,6 +180,20 @@ namespace LitMath
 
 
         /// <summary>
+        /// Computes Inverse Tangent on 4 doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void ATan(double* xx, double* yy)
+        {
+            var x = Avx.LoadVector256(xx);
+            ATan(ref x, ref x);
+            Avx.Store(yy, x);
+        }
+
+
+        /// <summary>
         /// Computes Sine on n doubles
         /// </summary>
         /// <param name="xx"></param>
@@ -143,6 +234,21 @@ namespace LitMath
             {
                 fixed (double* x = xx) fixed (double* y = yy)
                     Tan(x, y, xx.Length);
+            }
+        }
+
+
+        /// <summary>
+        /// Computes Inverse Tangent on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        public static void ATan(ref Span<double> xx, ref Span<double> yy)
+        {
+            unsafe
+            {
+                fixed (double* x = xx) fixed (double* y = yy)
+                    ATan(x, y, xx.Length);
             }
         }
 
@@ -298,6 +404,57 @@ namespace LitMath
             {
                 i = n - VSZ;
                 Tan(xx + i, yy + i);
+            }
+        }
+
+        /// <summary>
+        /// Computes Inverse Tangent on n doubles
+        /// </summary>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        /// <param name="n"></param>
+        [SkipLocalsInit]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void ATan(double* xx, double* yy, int n)
+        {
+            const int VSZ = 4;
+
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                ATan(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+            }
+
+            int i = 0;
+
+            // Calculates values in an unrolled manner if the number of values is large enough
+            while (i < (n - 15))
+            {
+                ATan(xx + i, yy + i);
+                i += VSZ;
+                ATan(xx + i, yy + i);
+                i += VSZ;
+                ATan(xx + i, yy + i);
+                i += VSZ;
+                ATan(xx + i, yy + i);
+                i += VSZ;
+            }
+
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 3); i += VSZ)
+                ATan(xx + i, yy + i);
+
+            // Cleans up any excess individual values (if n%4 != 0)
+            if (i != n)
+            {
+                i = n - VSZ;
+                ATan(xx + i, yy + i);
             }
         }
     }
