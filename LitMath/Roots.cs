@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
@@ -137,7 +138,7 @@ namespace LitMath
         /// <param name="xx">A Span to the first of 4 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(ref Span<double> xx, ref Span<double> yy)
+        public static void Sqrt(ref Span<double> xx, ref Span<double> yy)
         {
             unsafe
             {
@@ -153,7 +154,7 @@ namespace LitMath
         /// <param name="xx">A Span to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(ref Span<float> xx, ref Span<float> yy)
+        public static void Sqrt(ref Span<float> xx, ref Span<float> yy)
         {
             unsafe
             {
