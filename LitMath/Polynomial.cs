@@ -9,7 +9,7 @@ namespace LitMath
     public class LitPolynomial
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void OrderN(ref Vector256<double> x, ref Vector256<double>[] p, ref Vector256<double> r, int n)
+        public static void OrderN(ref Vector256<double> x, ref Vector256<double>[] p, ref Vector256<double> r, int n)
         {
             r = p[n - 1];
 
