@@ -67,5 +67,20 @@ namespace LitMathBenchmarks
                 LitTrig.Tan(lg, r, N);
 
         }
+
+        [Benchmark]
+        public void NaiveATanDouble()
+        {
+            for (int i = 0; i < N; i++)
+                temp = Math.Atan(x[i]);
+        }
+
+        [Benchmark]
+        public unsafe void LitATanDouble()
+        {
+            fixed (double* lg = x) fixed (double* r = results)
+                LitTrig.ATan(lg, r, N);
+
+        }
     }
 }
