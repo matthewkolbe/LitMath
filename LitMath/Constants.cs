@@ -27,26 +27,20 @@ namespace LitMath
 
             public static class Trig
             {
-                public static readonly Vector256<double> TWOPI = Vector256.Create(6.283185307179586476925286766559006);
-                public static readonly Vector256<double> PI = Vector256.Create(3.141592653589793238462643383279503);
-                public static readonly Vector256<double> HALFPI = Vector256.Create(1.570796326794896619231321691639751);
-                public static readonly Vector256<double> NEGHALFPI = Vector256.Create(-1.570796326794896619231321691639751);
-                public static readonly Vector256<double> QUARTERPI = Vector256.Create(0.7853981633974483096156608458198757);
+                public static readonly Vector256<double> TWOPI = Vector256.Create(2.0 * Math.PI);
+                public static readonly Vector256<double> PI = Vector256.Create(Math.PI);
+                public static readonly Vector256<double> HALFPI = Vector256.Create(0.5 * Math.PI);
+                public static readonly Vector256<double> NEGHALFPI = Vector256.Create(-Math.PI * 0.5);
+                public static readonly Vector256<double> QUARTERPI = Vector256.Create(0.25 * Math.PI);
                 public static readonly Vector256<double> THIRDPI = Vector256.Create(Math.PI/3);
                 public static readonly Vector256<double> SIN_OF_QUARTERPI = Vector256.Create(0.7071067811865475244008443621);
-                public static readonly Vector256<double> P15 = Vector256.Create(-7.64716373181981647590113198578807E-13);
-                public static readonly Vector256<double> P14 = Vector256.Create(-1.147074559772972471385169797868211E-11);
-                public static readonly Vector256<double> P13 = Vector256.Create(1.605904383682161459939237717015495E-10);
-                public static readonly Vector256<double> P12 = Vector256.Create(2.087675698786809897921009032120143E-9);
-                public static readonly Vector256<double> P11 = Vector256.Create(-2.505210838544171877505210838544172E-8);
-                public static readonly Vector256<double> P10 = Vector256.Create(-2.755731922398589065255731922398589E-7);
-                public static readonly Vector256<double> P9 = Vector256.Create(2.755731922398589065255731922398589E-6);
-                public static readonly Vector256<double> P8 = Vector256.Create(2.48015873015873015873015873015873E-5);
-                public static readonly Vector256<double> P7 = Vector256.Create(-1.984126984126984126984126984126984E-4);
-                public static readonly Vector256<double> P6 = Vector256.Create(-0.001388888888888888888888888888888889);
-                public static readonly Vector256<double> P5 = Vector256.Create(0.008333333333333333333333333333333333);
-                public static readonly Vector256<double> P4 = Vector256.Create(0.04166666666666666666666666666666667);
-                public static readonly Vector256<double> P3 = Vector256.Create(-0.1666666666666666666666666666666667);
+                public static readonly Vector256<double> P3 = Vector256.Create(-0.16666666666666644    );
+                public static readonly Vector256<double> P5 = Vector256.Create(0.008333333333332034    );
+                public static readonly Vector256<double> P7 = Vector256.Create(-0.00019841269840806724 );
+                public static readonly Vector256<double> P9 = Vector256.Create(2.755731914653294E-06   );
+                public static readonly Vector256<double> P11 = Vector256.Create(-2.5052101353962483E-08 );
+                public static readonly Vector256<double> P13 = Vector256.Create(1.6058680396257352E-10  );
+                public static readonly Vector256<double> P15 = Vector256.Create(-7.636661762929444E-13  );
                 public static readonly Vector256<double> AT2 = Vector256.Create(-0.3333333281594899);
                 public static readonly Vector256<double> AT3 = Vector256.Create(0.199999714632415);
                 public static readonly Vector256<double> AT4 = Vector256.Create(-0.14285112191172802);
@@ -58,6 +52,18 @@ namespace LitMath
                 public static readonly Vector256<double> AT10 = Vector256.Create(-0.025599555430499406);
                 public static readonly Vector256<double> AT11 = Vector256.Create(0.011187654858740102);
                 public static readonly Vector256<double> AT12 = Vector256.Create(-0.0031140210764749898);
+                public static readonly Vector256<double> T3 = Vector256.Create(0.3333333333312579      );
+                public static readonly Vector256<double> T5 = Vector256.Create(0.1333333335097656      );
+                public static readonly Vector256<double> T7 = Vector256.Create(0.053968248283506354    );
+                public static readonly Vector256<double> T9 = Vector256.Create(0.02186958460693491     );
+                public static readonly Vector256<double> T11 = Vector256.Create(0.008862258714315669    );
+                public static readonly Vector256<double> T13 = Vector256.Create(0.003598548896841443    );
+                public static readonly Vector256<double> T15 = Vector256.Create(0.00142747990285674     );
+                public static readonly Vector256<double> T17 = Vector256.Create(0.0006754958507728294   );
+                public static readonly Vector256<double> T19 = Vector256.Create(6.40260905512687E-05    );
+                public static readonly Vector256<double> T21 = Vector256.Create(0.00033371720402669574  );
+                public static readonly Vector256<double> T23 = Vector256.Create(-0.00015721067265618978 );
+                public static readonly Vector256<double> T25 = Vector256.Create(9.864578277638557E-05   );
                 public static readonly Vector256<double> HIGH = Vector256.Create(double.MaxValue);
                 public static readonly Vector256<double> LOW = Vector256.Create(double.MinValue);
                 public static readonly Vector256<double> ONE = Vector256.Create(1.0);
