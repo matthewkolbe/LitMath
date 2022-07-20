@@ -17,13 +17,13 @@ namespace LitMathTests
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
-                    a[i] = i + r.NextDouble();
+                    a[i] = 8*Math.PI*(r.NextDouble()-0.5);
 
 
                 LitTrig.Sin(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Sin(a[i]) / b[i], 1e-10);
+                    Assert.AreEqual(0.0, Math.Abs(Math.Sin(a[i]) - b[i]), 1e-15);
             }
         }
 
@@ -41,7 +41,7 @@ namespace LitMathTests
                 LitTrig.Sin(aa, b, 113);
 
             for (int i = 0; i < 113; ++i)
-                Assert.AreEqual(1.0, Math.Sin(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(1.0, Math.Sin(a[i]) / b[i], 1e-10);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace LitMathTests
                 LitTrig.Cos(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-10);
+                    Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-11);
             }
         }
 
@@ -96,7 +96,7 @@ namespace LitMathTests
                 LitTrig.Cos(aa, b, 113);
 
             for (int i = 0; i < 113; ++i)
-                Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-9);
         }
 
         [Test]
@@ -123,18 +123,17 @@ namespace LitMathTests
         [Test]
         public unsafe void AvxTanDoubleAccuracy()
         {
-            var a = new double[1000];
-            var b = stackalloc double[1000];
+            Span<double> a = stackalloc double[1000];
+            Span<double> b = stackalloc double[1000];
             var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
-                a[i] = 1000.0 * r.NextDouble() - 500.0;
+                a[i] = 2 * Math.PI * r.NextDouble();
 
-            fixed (double* aa = a)
-                LitTrig.Tan(aa, b, 1000);
+            LitTrig.Tan(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Tan(a[i]) / b[i], 1e-10);
+                Assert.AreEqual(0.0, Math.Abs(Math.Tan(a[i]) - b[i]), 5e-8);
         }
 
         [Test]
@@ -153,7 +152,7 @@ namespace LitMathTests
                 LitTrig.Tan(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Tan(a[i]) / b[i], 1e-10);
+                    Assert.AreEqual(0.0, Math.Abs(Math.Tan(a[i]) - b[i]), 1e-9);
             }
         }
 
