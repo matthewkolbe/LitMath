@@ -30,6 +30,7 @@ namespace LitMath
                 public static readonly Vector256<double> TWOPI = Vector256.Create(6.283185307179586476925286766559006);
                 public static readonly Vector256<double> PI = Vector256.Create(3.141592653589793238462643383279503);
                 public static readonly Vector256<double> HALFPI = Vector256.Create(1.570796326794896619231321691639751);
+                public static readonly Vector256<double> NEGHALFPI = Vector256.Create(-1.570796326794896619231321691639751);
                 public static readonly Vector256<double> QUARTERPI = Vector256.Create(0.7853981633974483096156608458198757);
                 public static readonly Vector256<double> THIRDPI = Vector256.Create(Math.PI/3);
                 public static readonly Vector256<double> SIN_OF_QUARTERPI = Vector256.Create(0.7071067811865475244008443621);
@@ -46,33 +47,17 @@ namespace LitMath
                 public static readonly Vector256<double> P5 = Vector256.Create(0.008333333333333333333333333333333333);
                 public static readonly Vector256<double> P4 = Vector256.Create(0.04166666666666666666666666666666667);
                 public static readonly Vector256<double> P3 = Vector256.Create(-0.1666666666666666666666666666666667);
-                public static readonly Vector256<double>[] AT = new Vector256<double>[] {
-                    Vector256.Create(0.0                ),
-                    Vector256.Create(1.047197555256493   ),
-                    Vector256.Create(1.0471971281459846  ),
-                    Vector256.Create(0.6643308809370068  ),
-                    Vector256.Create(-0.09566827771662459),
-                    Vector256.Create(-1.1570749872663317 ),
-                    Vector256.Create(1.0347918030424534  ),
-                    Vector256.Create(-26.99574707616141  ),
-                    Vector256.Create(176.73973590103338  ),
-                    Vector256.Create(-831.3695197757582  ),
-                    Vector256.Create(2766.973515882119   ),
-                    Vector256.Create(-6289.349266587125  ),
-                    Vector256.Create(9154.05439634745    ),
-                    Vector256.Create(-6394.17188582853   ),
-                    Vector256.Create(-2783.067458450766  ),
-                    Vector256.Create(7948.1226794182685  ),
-                    Vector256.Create(1726.6491309489963  ),
-                    Vector256.Create(-18307.17330955125  ),
-                    Vector256.Create(22861.86132284062   ),
-                    Vector256.Create(-12445.937702363688 ),
-                    Vector256.Create(1173.28348129363    ),
-                    Vector256.Create(2242.4992978419814  ),
-                    Vector256.Create(-1160.707161753395  ),
-                    Vector256.Create(187.6185131370321   ) };
-
-                public static readonly int ATORDER = AT.Length;
+                public static readonly Vector256<double> AT2 = Vector256.Create(-0.3333333281594899);
+                public static readonly Vector256<double> AT3 = Vector256.Create(0.199999714632415);
+                public static readonly Vector256<double> AT4 = Vector256.Create(-0.14285112191172802);
+                public static readonly Vector256<double> AT5 = Vector256.Create(0.11104357372799582);
+                public static readonly Vector256<double> AT6 = Vector256.Create(-0.0904447441755764);
+                public static readonly Vector256<double> AT7 = Vector256.Create(0.07480384892114726);
+                public static readonly Vector256<double> AT8 = Vector256.Create(-0.059910413260166356);
+                public static readonly Vector256<double> AT9 = Vector256.Create(0.043209392493582424);
+                public static readonly Vector256<double> AT10 = Vector256.Create(-0.025599555430499406);
+                public static readonly Vector256<double> AT11 = Vector256.Create(0.011187654858740102);
+                public static readonly Vector256<double> AT12 = Vector256.Create(-0.0031140210764749898);
                 public static readonly Vector256<double> HIGH = Vector256.Create(double.MaxValue);
                 public static readonly Vector256<double> LOW = Vector256.Create(double.MinValue);
                 public static readonly Vector256<double> ONE = Vector256.Create(1.0);

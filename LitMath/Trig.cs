@@ -102,34 +102,56 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ATan(ref Vector256<double> x, ref Vector256<double> y)
         {
-            // WARNING: I made this one up. This should be extremely suspicious, for every other implementation
-            // in this library is something I copied. The algorithm is simply a order 20 linear regression
-            // on x/(x+PI/3). Testing has shown less than 1e-8 relative error (i.e. abs(real/model-1)<1e-8), and
-            // meaningful speedups. But nevertheless, use at your own risk. Also, I'm open to suggestions about
-            // better ways to do this as well.
+            // Idea taken from https://github.com/avrdudes/avr-libc/blob/main/libm/fplib/atan.S
 
-
-            // This algorithm leverages the fact that ATan is an odd function, and converts negative
-            // inputs to positive ones, and changes the output sign at the end.
-            var negend = Avx.CompareLessThan(x, LitConstants.Double.Trig.ZERO);
-            negend = Avx.And(negend, LitConstants.Double.Trig.NEGATIVE_TWO);
-            negend = Avx.Add(negend, LitConstants.Double.Trig.ONE);
+            //  Algorithm:
+	        //  if (x > 1)
+	        //      return Pi/2 - atanf(1/x)
+	        //  elif (x < -1)
+	        //      return -Pi/2 - atanf(1/x)
+	        //  else
+	        //      return x * (1 - C1 * x**2 + ... + CN * x**2N)
+             
 
             // Ensures NaN inputs are NaN outputs
             var nanend = Avx.CompareNotEqual(x, x);
 
-            // Converts makes xt = x/(x+PI/3)
-            var xt = Avx.AndNot(LitConstants.Double.Trig.NEGZERO, x);
-            xt = Avx.Divide(xt, Avx.Add(LitConstants.Double.Trig.THIRDPI, xt));
+            // The original algorithm has some branching in it, but a manageable amount. This section modifies negend to also
+            // have -Pi/2 or Pi/2 added at the end if |x| > 1 (since NaN is reflected by adding NaN to the answer at the end).
+            nanend = Avx.Add(nanend, Avx.And(Avx.CompareGreaterThan(x, LitConstants.Double.Trig.ONE), LitConstants.Double.Trig.HALFPI));
+            var invx = Avx.Divide(LitConstants.Double.Trig.NEGONE, x);
+            var gtmask = Avx.CompareGreaterThan(x, LitConstants.Double.Trig.ONE);
+            var ltmask = Avx.CompareLessThanOrEqual(x, LitConstants.Double.Trig.ONE);
+            var xx = Avx.Add(Avx.And(gtmask, invx), Avx.And(ltmask, x));
+            nanend = Avx.Add(nanend, Avx.And(Avx.CompareLessThan(x, LitConstants.Double.Trig.NEGONE), LitConstants.Double.Trig.NEGHALFPI));
+            gtmask = Avx.CompareGreaterThanOrEqual(x, LitConstants.Double.Trig.NEGONE);
+            ltmask = Avx.CompareLessThan(x, LitConstants.Double.Trig.NEGONE);
+            xx = Avx.Add(Avx.And(ltmask, invx),Avx.And(gtmask, xx));
 
-            // This is how we handle infinity cases. xt is NaN at this point only if it started out as infinity or
-            // NaN. So, we force the value to 1.0 (i.e. lim x-> inf of 1/(1+PI/3)), then the NaN case is overridden
-            // at the end with nanend.
-            xt = Avx.Add(Avx.And(Avx.CompareEqual(xt, xt), xt), Avx.And(Avx.CompareNotEqual(xt, xt), LitConstants.Double.Trig.ONE));
+            // This algorithm leverages the fact that ATan is an odd function, and converts negative
+            // inputs to positive ones, and changes the output sign at the end.
+            var negend = Avx.CompareLessThan(xx, LitConstants.Double.Trig.ZERO);
+            negend = Avx.And(negend, LitConstants.Double.Trig.NEGATIVE_TWO);
+            negend = Avx.Add(negend, LitConstants.Double.Trig.ONE);
 
-            var p = LitConstants.Double.Trig.AT;
-            LitPolynomial.OrderN(ref xt, ref p, ref y, LitConstants.Double.Trig.ATORDER);
-            y = Fma.MultiplyAdd(y, negend, nanend);
+            var xt = Avx.Multiply(xx, xx);
+
+            var yy = Vector256.Create(0.0004071627951457367);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT12);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT11);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT10);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT9);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT8);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT7);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT6);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT5);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT4);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT3);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT2);
+            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.ONE);
+            yy = Avx.Multiply(yy, Avx.AndNot(LitConstants.Double.Trig.NEGZERO, xx));
+
+            y = Fma.MultiplyAdd(yy, negend, nanend);
         }
 
 
