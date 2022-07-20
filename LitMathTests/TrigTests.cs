@@ -195,18 +195,18 @@ namespace LitMathTests
         [Test]
         public unsafe void AvxATanDoubleAccuracy()
         {
-            var a = new double[1000];
-            var b = stackalloc double[1000];
+            Span<double> a = stackalloc double[1000];
+            Span<double> b = stackalloc double[1000];
             var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
-                a[i] = 10.0 * r.NextDouble() - 5.0;
+                a[i] = 10.0*r.NextDouble() - 5.0;
 
-            fixed (double* aa = a)
-                LitTrig.ATan(aa, b, 1000);
+
+            LitTrig.ATan(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
         }
 
         [Test]
@@ -219,13 +219,13 @@ namespace LitMathTests
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
-                    a[i] = i + r.NextDouble();
+                    a[i] = i + r.NextDouble() - n/2;
 
 
                 LitTrig.ATan(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-8);
+                    Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
             }
         }
 
@@ -243,7 +243,7 @@ namespace LitMathTests
                 LitTrig.ATan(aa, b, 113);
 
             for (int i = 0; i < 113; ++i)
-                Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
         }
 
         [Test]
