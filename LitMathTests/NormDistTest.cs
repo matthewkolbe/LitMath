@@ -1,12 +1,32 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using LitMath;
+using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
 
 namespace LitMathTests
 {
     public class NormDistTest
     {
+        [Test]
+        public unsafe void ErfDoubleAccuracy()
+        {
+            var n = 1000;
+            var x = new double[n];
+            var y = new double[n];
+            var r = new Random(10);
+
+            for (int i = 0; i < n; i++)
+                x[i] = 30.0*(r.NextDouble()-0.5);
+
+
+            fixed (double* xx = x) fixed (double* yy = y) 
+                LitNormDist.Erf(xx, yy, n);
+
+            for (int i = 0; i < n; ++i)
+                Assert.AreEqual(y[i], SpecialFunctions.Erf(x[i]), 5e-10);
+        }
+
         [Test]
         public unsafe void CdfDoubleAccuracy()
         {
@@ -27,7 +47,7 @@ namespace LitMathTests
                 LitNormDist.CDF(mm, ss, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-7);
+                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-9);
         }
 
         [Test]
@@ -50,7 +70,7 @@ namespace LitMathTests
                 LitNormDist.CDF(m, s, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], really[i], 1e-7);
+                Assert.AreEqual(y[i], really[i], 1e-9);
         }
 
         [Test]
@@ -76,7 +96,7 @@ namespace LitMathTests
                 LitNormDist.CDF(m, s, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], really[i], 1e-7);
+                Assert.AreEqual(y[i], really[i], 1e-9);
         }
 
         [Test]
