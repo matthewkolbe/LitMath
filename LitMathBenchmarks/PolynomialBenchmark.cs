@@ -10,7 +10,7 @@ namespace LitMathBenchmarks
     {
         double[] x, p, results;
 
-        [Params(128, 200000)]
+        [Params(256, 200000)]
         public int N;
 
         public int order = 8;

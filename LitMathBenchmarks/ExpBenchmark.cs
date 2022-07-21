@@ -12,7 +12,7 @@ namespace LitMathBenchmarks
         double[] exps, results;
         float[] fexps, fresults;
 
-        [Params(4, 64, 512, 120000)]
+        [Params(4, 128, 2048, 120000)]
         public int N;
         double temp = 0.0;
         int cores = Environment.ProcessorCount;
