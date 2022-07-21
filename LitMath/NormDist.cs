@@ -392,45 +392,35 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(ref Vector256<double> x, ref Vector256<double> y)
         {
-            var one = Vector256.Create(1.0);
-            var negone = Vector256.Create(-1.0);
-            var a1 = Vector256.Create(0.254829592);
-            var a2 = Vector256.Create(-0.284496736);
-            var a3 = Vector256.Create(1.421413741);
-            var a4 = Vector256.Create(-1.453152027);
-            var a5 = Vector256.Create(1.061405429);
-            var p = Vector256.Create(0.3275911);
-            var sign_bit = Vector256.Create(-0.0);
 
-            var sign = Avx.And(sign_bit, x);
-            sign = Avx.Or(sign, one);
-            var xx = Avx.AndNot(sign_bit, x);
+            var sign = Avx.And(LitConstants.Double.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, LitConstants.Double.NormDist.ONE);
+            var xx = Avx.AndNot(LitConstants.Double.NormDist.NEGATIVE_ZERO, x);
 
-            // A&S formula 7.1.26
-            var tu = Avx.Multiply(p, xx);
-            tu = Avx.Add(one, tu);
-            var t = Avx.Divide(one, tu);
+            var t = Fma.MultiplyAdd(LitConstants.Double.NormDist.ONE_OVER_PI, xx, LitConstants.Double.NormDist.ONE);
+            t = Avx.Divide(LitConstants.Double.NormDist.ONE, t);
 
+            var yy = Vector256.Create(0.022155411339686473);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E1);
+            yy = Avx.Multiply(yy, t);
 
-            //double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
-            y = Avx.Multiply(a5, t);
-            y = Avx.Add(y, a4);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a3);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a2);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a1);
-            y = Avx.Multiply(y, t);
-
-            var exsq = Avx.Multiply(xx, xx);
-            exsq = Avx.Multiply(exsq, negone);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, LitConstants.Double.NormDist.NEGONE), xx);
 
             LitExp.Exp(ref exsq, ref exsq);
 
-            y = Avx.Multiply(y, exsq);
-            y = Avx.Subtract(one, y);
-            y = Avx.Multiply(y, sign);
+            yy = Avx.Multiply(yy, exsq);
+            yy = Avx.Add(LitConstants.Double.NormDist.ONE, yy);
+            y = Avx.Multiply(yy, sign);
         }
 
 
@@ -486,6 +476,53 @@ namespace LitMath
             var y = Vector256<double>.Zero;
             Erf(ref x, ref y);
             Avx.Store(yy, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Erf(double* xx, double* yy, int n)
+        {
+            const int VSZ = 4;
+
+            // if n < 4, then we handle the special case by creating a 4 element array to work with
+            if (n < VSZ)
+            {
+                var tmpx = stackalloc double[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = xx[j];
+
+                Erf(tmpx, tmpx);
+
+                for (int j = 0; j < n; ++j)
+                    yy[j] = tmpx[j];
+
+                return;
+            }
+
+            int i = 0;
+
+            // Calculates values in an unrolled manner if the number of values is large enough
+            while (i < (n - 15))
+            {
+                Erf(xx + i, yy + i);
+                i += VSZ;
+                Erf(xx + i, yy + i);
+                i += VSZ;
+                Erf(xx + i, yy + i);
+                i += VSZ;
+                Erf(xx + i, yy + i);
+                i += VSZ;
+            }
+
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 3); i += VSZ)
+                Erf(xx + i, yy + i);
+
+            // Cleans up any excess individual values (if n%4 != 0)
+            if (i != n)
+            {
+                i = n - VSZ;
+                Erf(xx + i, yy + i);
+            }
         }
     }
 }
