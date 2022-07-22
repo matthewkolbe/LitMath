@@ -72,13 +72,13 @@ namespace LitMathTests
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
-                    a[i] = i + r.NextDouble();
+                    a[i] = 8 * Math.PI * (r.NextDouble() - 0.5);
 
 
                 LitTrig.Cos(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-11);
+                    Assert.AreEqual(Math.Cos(a[i]), b[i], 1e-15);
             }
         }
 
@@ -128,12 +128,12 @@ namespace LitMathTests
             var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
-                a[i] = 2 * Math.PI * r.NextDouble();
+                a[i] = Math.PI * (r.NextDouble() - 0.5);
 
             LitTrig.Tan(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(0.0, Math.Abs(Math.Tan(a[i]) - b[i]), 5e-8);
+                Assert.AreEqual(Math.Tan(a[i]), b[i], Math.Abs(b[i]) * 1e-12);
         }
 
         [Test]
@@ -205,7 +205,7 @@ namespace LitMathTests
             LitTrig.ATan(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
+                Assert.AreEqual(Math.Atan(a[i]), b[i], Math.Abs(b[i]) * 1e-10);
         }
 
         [Test]

@@ -14,13 +14,13 @@ namespace LitMathTests
             var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
-                a[i] = (i - 500) + r.NextDouble();
+                a[i] = 2*(r.NextDouble() - 0.5);
 
             fixed (double* aa = a)
             LitExp.Exp(aa, b, 1000);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-8);
+                Assert.AreEqual(Math.Exp(a[i]), b[i], 3e-16 * b[i]);
         }
 
         [Test]
@@ -39,7 +39,7 @@ namespace LitMathTests
                 LitExp.Exp(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-8);
+                    Assert.AreEqual(b[i], Math.Exp(a[i]), Math.Max(5e-15 * b[i], 1e-20));
             }
         }
 
@@ -64,14 +64,15 @@ namespace LitMathTests
         [Test]
         public unsafe void AvxExpDoubleNegInfZero()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = stackalloc double[4];
+            Span<double> b = stackalloc double[4];
 
-            for (int i = 0; i < 4; ++i)
-                a[i] = double.NegativeInfinity;
+            a[0] = double.NegativeInfinity;
+            a[1] = -1e200;
+            a[2] = -1e100;
+            a[3] = -1e50;
 
-            fixed (double* aa = a)
-                LitExp.Exp(aa, b, 4);
+            LitExp.Exp(ref a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(0.0, b[i]);

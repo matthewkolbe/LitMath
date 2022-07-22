@@ -24,7 +24,7 @@ namespace LitMathTests
                 LitNormDist.Erf(xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], SpecialFunctions.Erf(x[i]), 5e-10);
+                Assert.AreEqual(y[i], SpecialFunctions.Erf(x[i]), 1e-13);
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace LitMathTests
                 LitNormDist.CDF(mm, ss, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-9);
+                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-13);
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace LitMathTests
                 LitNormDist.CDF(m, s, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], really[i], 1e-9);
+                Assert.AreEqual(y[i], really[i], 1e-13);
         }
 
         [Test]
