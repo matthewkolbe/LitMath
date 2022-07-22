@@ -1,7 +1,13 @@
 # LitMath
  A collection of AVX-256 accelerated mathematical functions for .NET
 
- I rewrote `Exp`, `Log`, `Sin`, `Cos` and `Tan` using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4 doubles or 8 floats per core. I added the `Sqrt`, ERF function and a Normal Distribution CDF as well. `Exp`, `Log`, `Sin`, `Cos`, `Tan` and `ATan` all run between `1e-8` and `1e-10` in worst-case accuracy for double precision.
+ I rewrote `Exp`, `Log`, `Sin`, `Cos` and `Tan` using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4 doubles or 8 floats per core. I added the `Sqrt`, ERF function and a Normal Distribution CDF as well. On doubles, the following accuracies apply:
+ 
+  - `Exp` and `Sqrt` run at double precision limits
+  - `ERF` at `1e-13` 
+  - `Sin` and `Cos` at `1e-15`
+  - `Tan` at `1e-12` (working on it)
+  - `ATan` at `1e-10` (also working on it)
 
  There are examples in the benchmark and tests. But here is one to get you started anyway.
 
