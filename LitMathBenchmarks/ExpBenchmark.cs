@@ -49,22 +49,14 @@ namespace LitMathBenchmarks
         [Benchmark]
         public unsafe void LitExpDoubleParallel()
         {
-            if (N < 10000)
+            var n = N / cores;
+
+            Parallel.For(0, cores, i =>
             {
                 fixed (double* ex = exps) fixed (double* r = results)
-                    LitExp.Exp(ex, r, N);
+                    LitExp.Exp(ex + i * n, r + i * n, n);
+            });
 
-            }
-            else
-            {
-                var n = N / cores;
-
-                Parallel.For(0, cores, i =>
-                {
-                    fixed (double* ex = exps) fixed (double* r = results)
-                        LitExp.Exp(ex + i*n, r + i*n, n);
-                });
-            }
         }
 
         [Benchmark]
@@ -77,7 +69,7 @@ namespace LitMathBenchmarks
         [Benchmark]
         public unsafe void LitExpFloat()
         {
-            fixed (float* ex = fexps) fixed(float* r = fresults)
+            fixed (float* ex = fexps) fixed (float* r = fresults)
             {
                 LitExp.Exp(ex, r, N);
             }
