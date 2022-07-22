@@ -286,10 +286,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ConvertLongToDouble(ref Vector256<long> x, ref Vector256<double> y)
         {
-
-            x = Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD);
-            y = Vector256.AsDouble(x);
-            y = Avx.Subtract(y, LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            y = Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD)), LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
         }
 
 
