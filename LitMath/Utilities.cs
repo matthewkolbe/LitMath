@@ -302,5 +302,22 @@ namespace LitMath
             z = Avx2.ShiftLeftLogical(z, 52);
             y = Vector256.AsDouble(z);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> IfLessThan(Vector256<double> x, Vector256<double> condition,
+            Vector256<double> trueval, Vector256<double> falseval)
+        {
+            return Avx.Add(
+                    Avx.And(Avx.CompareLessThan(x, condition), trueval),
+                    Avx.And(Avx.CompareGreaterThanOrEqual(x, condition), falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> IfElse(Vector256<double> mask, Vector256<double> trueval, Vector256<double> falseval)
+        {
+            return Avx.Add(
+                    Avx.And(mask, trueval),
+                    Avx.AndNot(mask, falseval));
+        }
     }
 }
