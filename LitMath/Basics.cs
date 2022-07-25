@@ -385,6 +385,87 @@ namespace LitMath
         }
 
 
+        public static void Dot(ref Vector256<double>[] a, ref Vector256<double>[] b, ref Vector256<double> r, int n)
+        {
+            int i = 0;
+            r = Vector256<double>.Zero;
+
+            if (n > 7)
+            {
+                var vr2 = Vector256<double>.Zero;
+                var vr3 = Vector256<double>.Zero;
+                var vr4 = Vector256<double>.Zero;
+
+                while (i < (n - 7))
+                {
+                    r = Fma.MultiplyAdd(a[i], b[i], r);
+                    i++;
+                    vr2 = Fma.MultiplyAdd(a[i], b[i], vr2);
+                    i++;
+                    vr3 = Fma.MultiplyAdd(a[i], b[i], vr3);
+                    i++;
+                    vr4 = Fma.MultiplyAdd(a[i], b[i], vr4);
+                    i++;
+                    r = Fma.MultiplyAdd(a[i], b[i], r);
+                    i++;
+                    vr2 = Fma.MultiplyAdd(a[i], b[i], vr2);
+                    i++;
+                    vr3 = Fma.MultiplyAdd(a[i], b[i], vr3);
+                    i++;
+                    vr4 = Fma.MultiplyAdd(a[i], b[i], vr4);
+                    i++;
+                }
+
+                vr3 = Avx.Add(vr3, vr4);
+                r = Avx.Add(r, vr2);
+                r = Avx.Add(r, vr3);
+            }
+
+            for (; i < n; i++)
+                r = Fma.MultiplyAdd(a[i], b[i], r);
+        }
+
+        public static void Dot(ref Span<Vector256<double>> a, ref Vector256<double>[] b, ref Vector256<double> r, int n)
+        {
+            int i = 0;
+            r = Vector256<double>.Zero;
+
+            if (n > 7)
+            {
+                var vr2 = Vector256<double>.Zero;
+                var vr3 = Vector256<double>.Zero;
+                var vr4 = Vector256<double>.Zero;
+
+                while (i < (n - 7))
+                {
+                    r = Fma.MultiplyAdd(a[i], b[i], r);
+                    i++;
+                    vr2 = Fma.MultiplyAdd(a[i], b[i], vr2);
+                    i++;
+                    vr3 = Fma.MultiplyAdd(a[i], b[i], vr3);
+                    i++;
+                    vr4 = Fma.MultiplyAdd(a[i], b[i], vr4);
+                    i++;
+                    r = Fma.MultiplyAdd(a[i], b[i], r);
+                    i++;
+                    vr2 = Fma.MultiplyAdd(a[i], b[i], vr2);
+                    i++;
+                    vr3 = Fma.MultiplyAdd(a[i], b[i], vr3);
+                    i++;
+                    vr4 = Fma.MultiplyAdd(a[i], b[i], vr4);
+                    i++;
+                }
+
+                vr3 = Avx.Add(vr3, vr4);
+                r = Avx.Add(r, vr2);
+                r = Avx.Add(r, vr3);
+            }
+
+            for (; i < n; i++)
+                r = Fma.MultiplyAdd(a[i], b[i], r);
+        }
+
+
         /// <summary>
         /// Does a dot product between two array using fused multiply add. 
         /// </summary>
