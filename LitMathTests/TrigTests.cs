@@ -10,20 +10,20 @@ namespace LitMathTests
         [Test]
         public void AvxSinDoubleAccuracySpan()
         {
-            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 127, 128, 129 })
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 127, 128, 129, 2000 })
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
-                    a[i] = 8*Math.PI*(r.NextDouble()-0.5);
+                    a[i] = 0.5* Math.PI*r.NextDouble();
 
 
                 LitTrig.Sin(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(0.0, Math.Abs(Math.Sin(a[i]) - b[i]), 1e-15);
+                    Assert.AreEqual(Math.Sin(a[i]), b[i], 1e-15);
             }
         }
 
@@ -53,13 +53,15 @@ namespace LitMathTests
             a[0] = double.NaN;
             a[1] = double.PositiveInfinity;
             a[2] = double.NegativeInfinity;
-            a[3] = double.NaN;
+            a[3] = 0.0;
 
             fixed (double* aa = a)
                 LitTrig.Sin(aa, b, 4);
 
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 3; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
+
+            Assert.AreEqual(0.0, b[3]);
         }
 
         [Test]
@@ -117,42 +119,57 @@ namespace LitMathTests
                 Assert.AreEqual(double.NaN, b[i]);
         }
 
-
-
-
         [Test]
         public unsafe void AvxTanDoubleAccuracy()
         {
-            Span<double> a = stackalloc double[1000];
-            Span<double> b = stackalloc double[1000];
+            int N = 10000;
+            Span<double> a = stackalloc double[N];
+            Span<double> b = stackalloc double[N];
             var r = new Random(10);
 
-            for (int i = 0; i < 1000; ++i)
-                a[i] = Math.PI * (r.NextDouble() - 0.5);
+            for (int i = 0; i < N; ++i)
+                a[i] = 0.25* Math.PI * r.NextDouble();
 
             LitTrig.Tan(ref a, ref b);
 
-            for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(Math.Tan(a[i]), b[i], Math.Abs(b[i]) * 1e-12);
+            for (int i = 0; i < N; ++i)
+                Assert.AreEqual(Math.Tan(a[i]), b[i], Math.Max(b[i] * 5e-15, 7e-17));
+        }
+
+        [Test]
+        public unsafe void AvxTanContinuousAt007()
+        {
+            int N = 4;
+            Span<double> a = stackalloc double[N];
+            Span<double> b = stackalloc double[N];
+            a[0] = 0.07 - 1e-12;
+            a[1] = 0.07 + 1e-12;
+
+            LitTrig.Tan(ref a, ref b);
+
+            Assert.Greater(b[1], b[0]);
         }
 
         [Test]
         public void AvxTanDoubleAccuracySpan()
         {
-            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 127, 128, 129 })
+            var r = new Random(10);
+
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 127, 128, 129, 2000 })
             {
                 Span<double> a = stackalloc double[n];
                 Span<double> b = stackalloc double[n];
-                var r = new Random(10);
-
+                
                 for (int i = 0; i < n; ++i)
-                    a[i] = i + r.NextDouble();
-
+                    a[i] = 0.5 * Math.PI * r.NextDouble();
 
                 LitTrig.Tan(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(0.0, Math.Abs(Math.Tan(a[i]) - b[i]), 1e-9);
+                    if (b[i] > 1)
+                        Assert.AreEqual(Math.Tan(a[i]), b[i], b[i] * b[i] * 1e-15);
+                    else
+                        Assert.AreEqual(Math.Tan(a[i]), b[i], 4e-16);
             }
         }
 
