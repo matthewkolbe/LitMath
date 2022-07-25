@@ -400,8 +400,7 @@ namespace LitMath
             var t = Fma.MultiplyAdd(LitConstants.Double.NormDist.ONE_OVER_PI, xx, LitConstants.Double.NormDist.ONE);
             t = Avx.Divide(LitConstants.Double.NormDist.ONE, t);
 
-            var yy = Vector256.Create(0.022155411339686473);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E11);
+            var yy = Fma.MultiplyAdd(LitConstants.Double.NormDist.E12, t, LitConstants.Double.NormDist.E11);
             yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E10);
             yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E9);
             yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E8);
