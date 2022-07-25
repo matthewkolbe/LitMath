@@ -23,4 +23,5 @@ LitExp.Exp(ref x, ref y);
 ## Parallel Processing
 LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
 
+## Notes
 [1] `Tan` is a difficult function. If you need great precsion everywhere, you may want to look into using CORDIC based algorithms. Near $n*\pi/2$, Tan requires a divide by a relatively small or relatively large number that really harms precision. This is especially evident for n=odd. I am open to suggestions.
