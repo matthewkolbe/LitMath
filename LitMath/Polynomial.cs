@@ -18,6 +18,18 @@ namespace LitMath
 
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ChebyshevFirst(ref Vector256<double> x, ref Span<Vector256<double>> r, int n)
+        {
+            r[0] = Vector256.Create(1.0);
+            r[1] = x;
+            var x2 = Avx.Add(x, x);
+
+            for (int i = 2; i < n; i++)
+                r[i] = Avx.Subtract(Avx.Multiply(x2, r[i-1]), r[i-2]);
+
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void OrderN(ref Vector256<float> x, ref Vector256<float>[] p, ref Vector256<float> r, int n)
