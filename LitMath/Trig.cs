@@ -32,9 +32,7 @@ namespace LitMath
             var xsq = Avx.Multiply(xt, xt);
 
             // This is an odd-only Taylor series approximation of sin() on [0, pi/2]. 
-            var yy = Vector256.Create(2.6584230014647046E-15);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.P15);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.P13);
+            var yy = Fma.MultiplyAdd(LitConstants.Double.Trig.P15, xsq, LitConstants.Double.Trig.P13);
             yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.P11);
             yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.P9);
             yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.P7);
@@ -48,19 +46,38 @@ namespace LitMath
             y = Fma.MultiplyAdd(yy, negend, nanend);
         }
 
+
+        /// <summary>
+        /// Computes 4 sines, but requires a guarantee that all x's are in [0,pi/4]
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void SinInZeroQuarterPi(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            var xsq = Avx.Multiply(x, x);
+
+            // This is an odd-only Taylor series approximation of sin() on [0, pi/4]. 
+            var yy = Fma.MultiplyAdd(LitConstants.Double.Trig.SQP13, xsq, LitConstants.Double.Trig.SQP11);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.SQP9);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.SQP7);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.SQP5);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.SQP3);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.ONE);
+            y = Avx.Multiply(yy, x);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Tan(ref Vector256<double> x, ref Vector256<double> y)
         {
-            // Motivated by
-            // https://github.com/avrdudes/avr-libc/blob/main/libm/fplib/tan.S
-
             // Calculation:
             //     Move to range [0, Pi] with no adjustments
             //     Use oddness around Pi/2 to make range [0, Pi/2] 
             //     do_inverse_mask = avx.gt(Pi/4)
             //     do_not_inverse_mask = avx.lte(Pi / 4)
             //     mirror around Pi/4
-            //     taylor series value in [0, Pi/4]
+            //     calculate tan(x) = sin(x) / sqrt(1-sin(x)^2)
             //     y = and(do_inverse, 1/y) + and(no_inverse, y)
 
             // Since tan() is periodic around pi, this converts x into the range of [0, pi]
@@ -83,29 +100,70 @@ namespace LitMath
             var no_inv_mask = Avx.CompareLessThanOrEqual(xt, LitConstants.Double.Trig.QUARTERPI);
             xt = Avx.Subtract(LitConstants.Double.Trig.QUARTERPI, LitUtilities.Abs(Avx.Subtract(xt, LitConstants.Double.Trig.QUARTERPI)));
 
+            // tan(x) = sin(x) / sqrt(1-sin(x)^2)
+            var xx = Vector256.Create(0.0);
+            SinInZeroQuarterPi(ref xt, ref xx);
+            xt = Avx.Sqrt(Avx.Subtract(LitConstants.Double.Trig.ONE, Avx.Multiply(xx, xx)));
+
+            xx = Avx.Add(
+                    Avx.And(do_inv_mask, Avx.Divide(xt, xx)),
+                    Avx.And(no_inv_mask, Avx.Divide(xx, xt)));
+
+            y = Fma.MultiplyAdd(xx, negend, nanend);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TanMixedModel(ref Vector256<double> x, ref Vector256<double> y)
+        {
+            // Calculation:
+            //     Move to range [0, Pi] with no adjustments
+            //     Use oddness around Pi/2 to make range [0, Pi/2] 
+            //     do_inverse_mask = avx.gt(Pi/4)
+            //     do_not_inverse_mask = avx.lte(Pi / 4)
+            //     mirror around Pi/4
+            //     calculate tan(x) = sin(x) / sqrt(1-sin(x)^2)
+            //     y = and(do_inverse, 1/y) + and(no_inverse, y)
+
+            // Since tan() is periodic around pi, this converts x into the range of [0, pi]
+            var xt = Avx.Subtract(x, Avx.Multiply(LitConstants.Double.Trig.PI, Avx.Floor(Avx.Divide(x, LitConstants.Double.Trig.PI))));
+
+            // Since tan() in [0, pi] is an odd function around pi/2, this converts the range to [0, pi/2], then stores whether
+            // or not the result needs to be negated in negend.
+            var negend = Avx.CompareGreaterThan(xt, LitConstants.Double.Trig.HALFPI);
+            xt = Avx.Add(xt, Avx.And(negend, Avx.Multiply(LitConstants.Double.Trig.NEGATIVE_TWO, Avx.Subtract(xt, LitConstants.Double.Trig.HALFPI))));
+
+            negend = Avx.And(negend, LitConstants.Double.Trig.NEGATIVE_TWO);
+            negend = Avx.Add(negend, LitConstants.Double.Trig.ONE);
+
+            var nanend = Avx.CompareNotEqual(x, x);
+            nanend = Avx.Add(nanend, Avx.CompareGreaterThan(x, LitConstants.Double.Trig.HIGH));
+            nanend = Avx.Add(nanend, Avx.CompareLessThan(x, LitConstants.Double.Trig.LOW));
+
+            // Since tan() on [0, pi/2] is an inversed function around pi/4, this "folds" the range into [0, pi/4]. I.e. 3pi/10 becomes 2pi/10.
+            var do_inv_mask = Avx.CompareGreaterThan(xt, LitConstants.Double.Trig.QUARTERPI);
+            xt = Avx.Subtract(LitConstants.Double.Trig.QUARTERPI, LitUtilities.Abs(Avx.Subtract(xt, LitConstants.Double.Trig.QUARTERPI)));
+
+            // tan(x) = sin(x) / sqrt(1-sin(x)^2)
+            var xx = Vector256.Create(0.0);
+            SinInZeroQuarterPi(ref xt, ref xx);
+
             var xsq = Avx.Multiply(xt, xt);
 
-            // This is an odd-only Taylor series approximation of tan() on [0, pi/4]. 
-            var yy = Vector256.Create(9.864578277638557E-05);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T23);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T21);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T19);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T17);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T15);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T13);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T11);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T9);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T7);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T5);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.T3);
-            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.ONE);
+            // This is an odd-only Taylor series approximation of tan() on [0, 0.07]. 
+            var yy = Fma.MultiplyAdd(LitConstants.Double.Trig.CT11, xsq, LitConstants.Double.Trig.CT9);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.CT7);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.CT5);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.CT3);
+            yy = Fma.MultiplyAdd(yy, xsq, LitConstants.Double.Trig.CT1);
             yy = Avx.Multiply(yy, xt);
 
-            yy = Avx.Add(
-                    Avx.And(do_inv_mask, Avx.Divide(LitConstants.Double.Trig.ONE, yy)),
-                    Avx.And(no_inv_mask, yy));
+            xt = Avx.Sqrt(Avx.Subtract(LitConstants.Double.Trig.ONE, Avx.Multiply(xx, xx)));
 
-            y = Fma.MultiplyAdd(yy, negend, nanend);
+            xx = LitUtilities.IfElse(do_inv_mask, Avx.Divide(xt, xx), Avx.Divide(xx, xt));
+            yy = LitUtilities.IfElse(do_inv_mask, Avx.Divide(LitConstants.Double.Trig.ONE, yy), yy);
+            xx = LitUtilities.IfElse(Avx.CompareLessThan(xt, LitConstants.Double.Trig.SMALLCONDITION), yy, xx);
+
+            y = Fma.MultiplyAdd(xx, negend, nanend);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -190,8 +248,7 @@ namespace LitMath
             var xt = Avx.Multiply(xx, xx);
 
             // This is an odd-only Taylor series approximation of atan() on [0, 1]. 
-            var yy = Vector256.Create(0.0004071627951457367);
-            yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT12);
+            var yy = Fma.MultiplyAdd(LitConstants.Double.Trig.AT13, xt, LitConstants.Double.Trig.AT12);
             yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT11);
             yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT10);
             yy = Fma.MultiplyAdd(yy, xt, LitConstants.Double.Trig.AT9);
@@ -246,7 +303,7 @@ namespace LitMath
         public static unsafe void Tan(double* xx, double* yy)
         {
             var x = Avx.LoadVector256(xx);
-            Tan(ref x, ref x);
+            TanMixedModel(ref x, ref x);
             Avx.Store(yy, x);
         }
 
