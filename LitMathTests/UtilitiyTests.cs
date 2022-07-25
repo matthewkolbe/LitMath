@@ -2,6 +2,7 @@
 
 using LitMath;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace LitMathTests
 {
@@ -125,6 +126,20 @@ namespace LitMathTests
             Assert.AreEqual(b.GetElement(2), 256.0);
             Assert.AreEqual(b.GetElement(3), 1000000.0);
         }
+
+        [Test]
+        public void IfElseTest()
+        {
+            var a = Vector256.Create(0.0, 1.0, -3.0, -20.0);
+            var zero = Vector256.Create(0.0);
+            var b = LitUtilities.IfElse(Avx.CompareGreaterThanOrEqual(a, zero), a, zero);
+
+            Assert.AreEqual(b.GetElement(0), 0.0);
+            Assert.AreEqual(b.GetElement(1), 1.0);
+            Assert.AreEqual(b.GetElement(2), 0.0);
+            Assert.AreEqual(b.GetElement(3), 0.0);
+        }
+
     }
 
 }
