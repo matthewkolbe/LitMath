@@ -6,7 +6,7 @@
   - `Exp` and `Sqrt` run at double precision limits
   - `ERF` at `1e-13` 
   - `Sin` and `Cos` at `1e-15`
-  - `Tan` in $[0,\pi/4]$ at `2e-16`[1]
+  - `Tan` in $[0,\pi/4]$ at `2e-16`
   - `ATan` at `1e-10` (working on it)
 
  There are examples in the benchmark and tests. But here is one to get you started anyway.
