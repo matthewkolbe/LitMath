@@ -217,6 +217,40 @@ namespace LitMath
         }
 
 
+        /// <summary>
+        /// Fills an array with the specified value
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="n">Number of data pieces to broadcast</param>
+        /// <param name="value"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Apply(float* v, int n, float value)
+        {
+            int i = 0;
+            var x = Avx.BroadcastScalarToVector256(&value);
+
+            while (i < (n - 31))
+            {
+                Avx.Store(v + i, x);
+                i += 8;
+                Avx.Store(v + i, x);
+                i += 8;
+                Avx.Store(v + i, x);
+                i += 8;
+                Avx.Store(v + i, x);
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                Avx.Store(v + i, x);
+
+
+            // Cleans up the residual
+            for (; i < n; i++)
+                v[i] = value;
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Apply(byte* v, uint n, byte value)
         {
