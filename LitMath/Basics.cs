@@ -212,6 +212,145 @@ namespace LitMath
                 r[i] = v[i] * constant;
         }
 
+        /// <summary>
+        /// Adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Add(double* v, double constant, double* r, int n)
+        {
+            var c = Vector256.Create(constant);
+            int i = 0;
+
+            // Unroll the loop if n > 16
+            while (i < (n - 15))
+            {
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 4;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 4;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 4;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 4;
+            }
+
+            // Loop through the AVX instructions
+            for (; i < (n - 3); i += 4)
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+
+
+            // clean up the residual
+            for (; i < n; i++)
+                r[i] = v[i] + constant;
+        }
+
+        /// <summary>
+        /// Adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void Add(float* v, float constant, float* r, int n)
+        {
+            var c = Vector256.Create(constant);
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 8;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 8;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 8;
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                Avx.Store(r + i, Avx.Add(Avx.LoadVector256(v + i), c));
+
+            // clean up the residual
+            for (; i < n; i++)
+                r[i] = v[i] + constant;
+        }
+
+        /// <summary>
+        /// Fused multiply adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void FusedMultiplyAdd(double* v, double mult, double add, double* r, int n)
+        {
+            var m = Vector256.Create(mult);
+            var a = Vector256.Create(add);
+            int i = 0;
+
+            // Unroll the loop if n > 16
+            while (i < (n - 15))
+            {
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 4;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 4;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 4;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 4;
+            }
+
+            // Loop through the AVX instructions
+            for (; i < (n - 3); i += 4)
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+
+
+            // clean up the residual
+            for (; i < n; i++)
+                r[i] = v[i] * mult + add;
+        }
+
+        /// <summary>
+        /// Fused multiply adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void FusedMultiplyAdd(float* v, float mult, float add, float* r, int n)
+        {
+            var m = Vector256.Create(mult);
+            var a = Vector256.Create(add);
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 8;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 8;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 8;
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                Avx.Store(r + i, Fma.MultiplyAdd(Avx.LoadVector256(v + i), m, a));
+
+            // clean up the residual
+            for (; i < n; i++)
+                r[i] = v[i] * mult + add;
+        }
 
         /// <summary>
         /// Computes the sum of all elements in a Vector256
