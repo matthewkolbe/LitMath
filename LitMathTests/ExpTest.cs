@@ -102,13 +102,13 @@ namespace LitMathTests
             var r = new Random(10);
 
             for (int i = 0; i < 160; ++i)
-                a[i] = (i - 80f) + (float)r.NextDouble();
+                a[i] = 6*(float)(r.NextDouble()-0.5);
 
             fixed (float* aa = a)
                 LitExp.Exp(aa, b, 160);
 
             for (int i = 0; i < 160; ++i)
-                Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-5);
+                Assert.AreEqual(b[i], Math.Exp(a[i]), 5e-7 * Math.Abs(b[i]));
         }
 
         [Test]
@@ -159,10 +159,10 @@ namespace LitMathTests
                 a[i] = float.NegativeInfinity;
 
             fixed (float* aa = a)
-                LitExp.Exp(aa, b, 4);
+                LitExp.Exp(aa, b, 8);
 
             for (int i = 0; i < 8; ++i)
-                Assert.AreEqual(0.0f, b[i]);
+                Assert.AreEqual(0.0f, b[i], 1e-10);
         }
 
         [Test]

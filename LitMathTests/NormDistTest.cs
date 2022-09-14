@@ -141,7 +141,7 @@ namespace LitMathTests
                 LitNormDist.CDF(mm, ss, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-5);
+                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-6);
         }
 
         [Test]
