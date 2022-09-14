@@ -8,6 +8,7 @@ namespace LitMathBenchmarks
     public class NormDistBenchmark
     {
         double[] x, y;
+        float[] xf, yf;
 
         [Params(1000)]
         public int N;
@@ -18,10 +19,15 @@ namespace LitMathBenchmarks
         {
             x = new double[N];
             y = new double[N];
+            xf = new float[N];
+            yf = new float[N];
             var r = new Random(10);
 
             for (int i = 0; i < N; i++)
+            {
                 x[i] = 20.0 * (r.NextDouble() - 0.5);
+                xf[i] = (float)x[i];
+            }
         }
 
         [Benchmark]
@@ -43,6 +49,13 @@ namespace LitMathBenchmarks
         {
             fixed (double* lg = x) fixed (double* r = y)
                 LitNormDist.CDF(0.0, 1.0, lg, r, N);
+        }
+
+        [Benchmark]
+        public unsafe void LitCdFloat()
+        {
+            fixed (float* lg = xf) fixed (float* r = yf)
+                LitNormDist.CDF(0.0f, 1.0f, lg, r, N);
         }
 
         [Benchmark]
