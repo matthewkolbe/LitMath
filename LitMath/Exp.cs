@@ -175,7 +175,8 @@ namespace LitMath
         public static unsafe void Exp(float* xx, float* yy)
         {
             var x = Avx.LoadVector256(xx);
-            Exp(ref x, ref x);
+            x = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            Two(ref x, ref x);
             Avx.Store(yy, x);
         }
 
@@ -189,6 +190,18 @@ namespace LitMath
         public static void Exp(ref Vector256<double> x, ref Vector256<double> y)
         {
             var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            Two(ref xx, ref y);
+        }
+
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        /// <param name="y">The 4 results</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
+        {
+            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
             Two(ref xx, ref y);
         }
 
@@ -239,64 +252,103 @@ namespace LitMath
             y = Fma.MultiplyAdd(y, fx, end);
         }
 
-        /// <summary>
-        /// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics.
-        /// </summary>
-        /// <param name="x">A reference to the 8 arguments</param>
-        /// <param name="y">The 8 results</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
-        {
-            
 
+        /// <summary>
+        /// Calculates 4 2^x exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        /// <param name="y">The 4 results</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Two(ref Vector256<float> x, ref Vector256<float> y)
+        {
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
             // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
             // zero. We add this to the result at the end, which will force y[1] to be infinity.
             var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Float.Exp.HIGH), LitConstants.Float.Exp.POSITIVE_INFINITY);
+
+            // Bound x by the maximum and minimum values this algorithm will handle.
+            var xx = Avx.Max(Avx.Min(x, LitConstants.Float.Exp.THIGH), LitConstants.Float.Exp.TLOW);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
             // it acts like the infinity adjustment.
             end = Avx.Add(Avx.CompareNotEqual(x, x), end);
 
-            // Bound x by the maximum and minimum values this algorithm will handle.
-            var xx = Avx.Min(x, LitConstants.Float.Exp.HIGH);
-            xx = Avx.Max(xx, LitConstants.Float.Exp.LOW);
+            var fx = Avx.RoundToNearestInteger(xx);
 
-            // Expresses exp(x) as exp(g)*exp(n*log(2)) = exp(g) * 2^n. Variable names do not match, since I reuse
-            // variables to save allocations.
-            var fx = Avx.Multiply(xx, LitConstants.Float.Exp.LOG2EF);
-            
-            // This is n
-            fx = Avx.RoundToNearestInteger(fx);
+            // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
+            xx = Avx.Subtract(xx, fx);
+            y = Fma.MultiplyAdd(LitConstants.Float.Exp.T7, xx, LitConstants.Float.Exp.T6);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T5);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T4);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T3);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T2);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T1);
+            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T0);
 
-            // This section gets a series approximation for exp(g) in (1, 2) since that is g's range.
-            var z = Avx.Multiply(fx, LitConstants.Float.Exp.INVERSE_LOG2EF);
-            xx = Avx.Subtract(xx, z);
-            z = Avx.Multiply(xx, xx);
-            y = Vector256.Create(1.9875691500E-4f);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.P1);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.P2);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.P3);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.P4);
-            y = Avx.Multiply(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.P5);
-            y = Avx.Multiply(y, z);
-            y = Avx.Add(y, xx);
-            y = Avx.Add(y, LitConstants.Float.Exp.ONE);
-
-            // Converts n to 2^n
-            var fxint = Avx2.ConvertToVector256Int32(fx);
-            fxint = Avx2.Add(fxint, LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN);
-            fxint = Avx2.ShiftLeftLogical(fxint, 23);
-            fx = Vector256.AsSingle(fxint);
+            // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
+            // since the exponent of a double will never be more than a max int32, then from int to long.
+            fx = Vector256.AsSingle(Avx2.ShiftLeftLogical(Avx2.Add(Avx2.ConvertToVector256Int32(fx), LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN), 23));
 
             // Combines the two exponentials and the end adjustments into the result.
-            y = Avx.Add(Avx.Multiply(y, fx), end);
+            y = Fma.MultiplyAdd(y, fx, end);
         }
+
+        ///// <summary>
+        ///// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics.
+        ///// </summary>
+        ///// <param name="x">A reference to the 8 arguments</param>
+        ///// <param name="y">The 8 results</param>
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
+        //{
+            
+
+        //    // Checks if x is greater than the highest acceptable argument. Stores the information for later to
+        //    // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
+        //    // zero. We add this to the result at the end, which will force y[1] to be infinity.
+        //    var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Float.Exp.HIGH), LitConstants.Float.Exp.POSITIVE_INFINITY);
+
+        //    // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
+        //    // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
+        //    // it acts like the infinity adjustment.
+        //    end = Avx.Add(Avx.CompareNotEqual(x, x), end);
+
+        //    // Bound x by the maximum and minimum values this algorithm will handle.
+        //    var xx = Avx.Min(x, LitConstants.Float.Exp.HIGH);
+        //    xx = Avx.Max(xx, LitConstants.Float.Exp.LOW);
+
+        //    // Expresses exp(x) as exp(g)*exp(n*log(2)) = exp(g) * 2^n. Variable names do not match, since I reuse
+        //    // variables to save allocations.
+        //    var fx = Avx.Multiply(xx, LitConstants.Float.Exp.LOG2EF);
+            
+        //    // This is n
+        //    fx = Avx.RoundToNearestInteger(fx);
+
+        //    // This section gets a series approximation for exp(g) in (1, 2) since that is g's range.
+        //    var z = Avx.Multiply(fx, LitConstants.Float.Exp.INVERSE_LOG2EF);
+        //    xx = Avx.Subtract(xx, z);
+        //    z = Avx.Multiply(xx, xx);
+        //    y = Vector256.Create(1.9875691500E-4f);
+        //    y = Avx.Multiply(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.P1);
+        //    y = Avx.Multiply(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.P2);
+        //    y = Avx.Multiply(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.P3);
+        //    y = Avx.Multiply(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.P4);
+        //    y = Avx.Multiply(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.P5);
+        //    y = Avx.Multiply(y, z);
+        //    y = Avx.Add(y, xx);
+        //    y = Avx.Add(y, LitConstants.Float.Exp.ONE);
+
+        //    // Converts n to 2^n
+        //    fx = Vector256.AsSingle(Avx2.ShiftLeftLogical(Avx2.Add(Avx2.ConvertToVector256Int32(fx), LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN), 23));
+
+        //    // Combines the two exponentials and the end adjustments into the result.
+        //    y = Avx.Add(Avx.Multiply(y, fx), end);
+        //}
     }
 }

@@ -161,6 +161,16 @@ namespace LitMath
                 public static readonly Vector256<float> P4 = Vector256.Create(1.6666665459E-1f);
                 public static readonly Vector256<float> P5 = Vector256.Create(5.0000001201E-1f);
                 public static readonly Vector256<float> ONE = Vector256.Create(1.0f);
+                public static readonly Vector256<float> THIGH = Vector256.Create(81.0f * 1.4426950408889634f);
+                public static readonly Vector256<float> TLOW = Vector256.Create(-81.0f * 1.4426950408889634f);
+                public static readonly Vector256<float> T0 = Vector256.Create(1.0f);
+                public static readonly Vector256<float> T1 = Vector256.Create(0.6931471805500692f);
+                public static readonly Vector256<float> T2 = Vector256.Create(0.240226509999339f);
+                public static readonly Vector256<float> T3 = Vector256.Create(0.05550410925060949f);
+                public static readonly Vector256<float> T4 = Vector256.Create(0.00961804886829518f);
+                public static readonly Vector256<float> T5 = Vector256.Create(0.0013333465742372899f);
+                public static readonly Vector256<float> T6 = Vector256.Create(0.000154631026827329f);
+                public static readonly Vector256<float> T7 = Vector256.Create(1.530610536076361E-05f);
             }
 
             public static class Log
@@ -178,6 +188,8 @@ namespace LitMath
                 public static readonly Vector256<float> ONE = Vector256.Create(1.0f);
                 public static readonly Vector256<float> LN2 = Vector256.Create(0.69314718055994530941f);
                 public static readonly Vector256<float> TWO = Vector256.Create(2.0f);
+
+
             }
 
             public static class NormDist
