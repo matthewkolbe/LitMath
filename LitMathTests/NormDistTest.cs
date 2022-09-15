@@ -141,7 +141,7 @@ namespace LitMathTests
                 LitNormDist.CDF(mm, ss, xx, yy, n);
 
             for (int i = 0; i < n; ++i)
-                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-6);
+                Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 2e-7);
         }
 
         [Test]
@@ -168,7 +168,7 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void CdffloatInfNansAreRight()
+        public unsafe void CdfFloatInfNansAreRight()
         {
             var n = 3;
             var x = new float[n];
