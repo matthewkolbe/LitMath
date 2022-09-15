@@ -52,7 +52,7 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitCdFloat()
+        public unsafe void LitCdfFloat()
         {
             fixed (float* lg = xf) fixed (float* r = yf)
                 LitNormDist.CDF(0.0f, 1.0f, lg, r, N);
