@@ -353,5 +353,46 @@ namespace LitMath
                     Avx.And(mask, trueval),
                     Avx.AndNot(mask, falseval));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref Vector256<double> x, Vector256<double> max)
+        {
+            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), max, x);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Min(ref Vector256<double> x, Vector256<double> min)
+        {
+            x = IfElse(Avx.CompareLessThanOrEqual(x, min), min, x);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> IfLessThan(Vector256<float> x, Vector256<float> condition,
+            Vector256<float> trueval, Vector256<float> falseval)
+        {
+            return Avx.Add(
+                    Avx.And(Avx.CompareLessThan(x, condition), trueval),
+                    Avx.And(Avx.CompareGreaterThanOrEqual(x, condition), falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> IfElse(Vector256<float> mask, Vector256<float> trueval, Vector256<float> falseval)
+        {
+            return Avx.Add(
+                    Avx.And(mask, trueval),
+                    Avx.AndNot(mask, falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref Vector256<float> x, Vector256<float> max)
+        {
+            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), max, x);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Min(ref Vector256<float> x, Vector256<float> min)
+        {
+            x = IfElse(Avx.CompareLessThanOrEqual(x, min), min, x);
+        }
     }
 }
