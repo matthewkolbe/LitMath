@@ -318,31 +318,56 @@ namespace LitMath
             var s = Vector256.Create(sigma);
             var o = Vector256<float>.Zero;
 
-            for (; i < (n - 31); i += 32)
+            const int VSZ = 8;
+
+            if(n < VSZ)
             {
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i, o);
+                var tmpx = stackalloc float[VSZ];
+                for (int j = 0; j < n; j++)
+                    tmpx[j] = x[j];
 
-                xx = Avx.LoadVector256(x + i + 8);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 8, o);
+                var xx = Avx.LoadVector256(tmpx);
 
-                xx = Avx.LoadVector256(x + i + 16);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 16, o);
+                CDF(ref m, ref s, ref xx, ref xx);
 
-                xx = Avx.LoadVector256(x + i + 24);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 24, o);
+                Avx.Store(tmpx, xx);
+
+                for (int j = 0; j < n; ++j)
+                    y[j] = tmpx[j];
+
+                return;
             }
 
-            for (; i < (n-7); i += 8)
+
+            for (; i < (n - 31);)
             {
-                
+                var x1 = Avx.LoadVector256(x + i);
+                CDF(ref m, ref s, ref x1, ref o);
+                Avx.Store(y + i, o);
+                i += VSZ;
+
+                var x2 = Avx.LoadVector256(x + i);
+                CDF(ref m, ref s, ref x2, ref o);
+                Avx.Store(y + i, o);
+                i += VSZ;
+
+                var x3 = Avx.LoadVector256(x + i);
+                CDF(ref m, ref s, ref x3, ref o);
+                Avx.Store(y + i, o);
+                i += VSZ;
+
+                var x4 = Avx.LoadVector256(x + i);
+                CDF(ref m, ref s, ref x4, ref o);
+                Avx.Store(y + i, o);
+                i += VSZ;
+            }
+
+            for (; i < (n-7);)
+            {
                 var xx = Avx.LoadVector256(x + i);
                 CDF(ref m, ref s, ref xx, ref o);
                 Avx.Store(y + i, o);
+                i += VSZ;
             }
 
             if (i != n)
@@ -383,6 +408,8 @@ namespace LitMath
             var s = Avx.Multiply(sigma, LitConstants.Float.NormDist.SQRT2);
             var m = Avx.Subtract(x, mean);
             m = Avx.Divide(m, s);
+            //LitUtilities.Max(ref m, LitConstants.Float.NormDist.MAX);
+            //LitUtilities.Min(ref m, LitConstants.Float.NormDist.MIN);
             Erf(ref m, ref y);
             y = Avx.Add(y, LitConstants.Float.NormDist.ONE);
             y = Avx.Multiply(y, LitConstants.Float.NormDist.HALF);
@@ -426,45 +453,33 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var float_one = Vector256.Create(1.0f);
-            var float_negone = Vector256.Create(-1.0f);
-            var a1 = Vector256.Create(0.254829592f);
-            var a2 = Vector256.Create(-0.284496736f);
-            var a3 = Vector256.Create(1.421413741f);
-            var a4 = Vector256.Create(-1.453152027f);
-            var a5 = Vector256.Create(1.061405429f);
-            var p = Vector256.Create(0.3275911f);
-            var sign_bit = Vector256.Create(-0.0f);
+            var sign = Avx.And(LitConstants.Float.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, LitConstants.Float.NormDist.ONE);
+            var xx = Avx.AndNot(LitConstants.Float.NormDist.NEGATIVE_ZERO, x);
 
-            var sign = Avx.And(sign_bit, x);
-            sign = Avx.Or(sign, float_one);
-            var xx = Avx.AndNot(sign_bit, x);
+            var t = Fma.MultiplyAdd(LitConstants.Float.NormDist.ONE_OVER_PI, xx, LitConstants.Float.NormDist.ONE);
+            t = Avx.Divide(LitConstants.Float.NormDist.ONE, t);
 
-            // A&S formula 7.1.26
-            var tu = Avx.Multiply(p, xx);
-            tu = Avx.Add(float_one, tu);
-            var t = Avx.Divide(float_one, tu);
+            var yy = Fma.MultiplyAdd(LitConstants.Float.NormDist.E12, t, LitConstants.Float.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E1);
+            yy = Avx.Multiply(yy, t);
 
-
-            //double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
-            y = Avx.Multiply(a5, t);
-            y = Avx.Add(y, a4);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a3);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a2);
-            y = Avx.Multiply(y, t);
-            y = Avx.Add(y, a1);
-            y = Avx.Multiply(y, t);
-
-            var exsq = Avx.Multiply(xx, xx);
-            exsq = Avx.Multiply(exsq, float_negone);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, LitConstants.Float.NormDist.NEGONE), xx);
 
             LitExp.Exp(ref exsq, ref exsq);
 
-            y = Avx.Multiply(y, exsq);
-            y = Avx.Subtract(float_one, y);
-            y = Avx.Multiply(y, sign);
+            yy = Avx.Multiply(yy, exsq); 
+            yy = Avx.Add(LitConstants.Float.NormDist.ONE, yy);
+            y = Avx.Multiply(yy, sign);
         }
 
 

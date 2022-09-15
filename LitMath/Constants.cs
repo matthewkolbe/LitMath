@@ -194,9 +194,26 @@ namespace LitMath
 
             public static class NormDist
             {
+                public static readonly Vector256<float> ONE = Vector256.Create(1.0f);
+                public static readonly Vector256<float> NEGONE = Vector256.Create(-1.0f);
                 public static readonly Vector256<float> SQRT2 = Vector256.Create(1.4142135623730950488f);
                 public static readonly Vector256<float> HALF = Vector256.Create(0.5f);
-                public static readonly Vector256<float> ONE = Vector256.Create(1.0f);
+                public static readonly Vector256<float> NEGATIVE_ZERO = Vector256.Create(-0.0f);
+                public static readonly Vector256<float> ONE_OVER_PI = Vector256.Create(1.0f / MathF.PI);
+                public static readonly Vector256<float> E1 = Vector256.Create(-0.17916959767319535f);
+                public static readonly Vector256<float> E2 = Vector256.Create(-0.18542742267595866f);
+                public static readonly Vector256<float> E3 = Vector256.Create(-0.13452915843880847f);
+                public static readonly Vector256<float> E4 = Vector256.Create(-0.2784782860163457f);
+                public static readonly Vector256<float> E5 = Vector256.Create(0.14246708134992647f);
+                public static readonly Vector256<float> E6 = Vector256.Create(-0.41925118422030655f);
+                public static readonly Vector256<float> E7 = Vector256.Create(0.03746722734143839f);
+                public static readonly Vector256<float> E8 = Vector256.Create(0.3009176755909412f);
+                public static readonly Vector256<float> E9 = Vector256.Create(-0.6169463046791893f);
+                public static readonly Vector256<float> E10 = Vector256.Create(0.4759112697935371f);
+                public static readonly Vector256<float> E11 = Vector256.Create(-0.1651167117117661f);
+                public static readonly Vector256<float> E12 = Vector256.Create(0.022155411339686473f);
+                public static readonly Vector256<float> MAX = Vector256.Create(1e3f);
+                public static readonly Vector256<float> MIN = Vector256.Create(-1e3f);
             }      
         }
 
