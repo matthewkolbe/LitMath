@@ -267,22 +267,23 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe double AbsSum(double* v, int n)
         {
+            const int VSZ = 4;
             var r = Vector256.Create(0.0);
             int i = 0;
 
             while (i < (n - 15))
             {
                 r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
-                i += 4;
+                i += VSZ;
                 r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
-                i += 4;
+                i += VSZ;
                 r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
-                i += 4;
+                i += VSZ;
                 r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
-                i += 4;
+                i += VSZ;
             }
 
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 3); i += VSZ)
                 r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
 
 
@@ -323,6 +324,12 @@ namespace LitMath
             y = Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD)), LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> ConvertLongToDouble(ref Vector256<long> x)
+        {
+            return Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD)), LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+        }
+
 
         /// <summary>
         /// Converts x to 2^x
@@ -347,6 +354,15 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> IfGreaterThan(Vector256<double> x, Vector256<double> condition,
+             Vector256<double> trueval, Vector256<double> falseval)
+        {
+            return Avx.Add(
+                    Avx.And(Avx.CompareGreaterThan(x, condition), trueval),
+                    Avx.And(Avx.CompareLessThanOrEqual(x, condition), falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> IfElse(Vector256<double> mask, Vector256<double> trueval, Vector256<double> falseval)
         {
             return Avx.Add(
@@ -357,13 +373,33 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Max(ref Vector256<double> x, Vector256<double> max)
         {
-            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), max, x);
+            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), x, max);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Min(ref Vector256<double> x, Vector256<double> min)
         {
-            x = IfElse(Avx.CompareLessThanOrEqual(x, min), min, x);
+            x = IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Max(Vector256<double> x, Vector256<double> max)
+        {
+            return IfElse(Avx.CompareGreaterThanOrEqual(x, max), x, max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Min(Vector256<double> x, Vector256<double> min)
+        {
+            return IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Sign(Vector256<double> x)
+        {
+            return IfElse(Avx.CompareGreaterThanOrEqual(x, LitConstants.Double.Util.ZERO),
+                LitConstants.Double.Util.ONE,
+                LitConstants.Double.Util.NEGONE);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -386,13 +422,25 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Max(ref Vector256<float> x, Vector256<float> max)
         {
-            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), max, x);
+            x = IfElse(Avx.CompareGreaterThanOrEqual(x, max), x, max);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Min(ref Vector256<float> x, Vector256<float> min)
         {
-            x = IfElse(Avx.CompareLessThanOrEqual(x, min), min, x);
+            x = IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Max(Vector256<float> x, Vector256<float> max)
+        {
+            return IfElse(Avx.CompareGreaterThanOrEqual(x, max), x, max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Min(Vector256<float> x, Vector256<float> min)
+        {
+            return IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
         }
     }
 }
