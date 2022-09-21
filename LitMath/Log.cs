@@ -55,8 +55,6 @@ namespace LitMath
         /// <summary>
         /// Calculates 8 log base 2's on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log2(ref Vector256<float> x, ref Vector256<float> y)
         {
@@ -85,8 +83,6 @@ namespace LitMath
         /// <summary>
         /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/x(+1)).
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogApprox(ref Vector256<double> x, ref Vector256<double> y)
         {
@@ -108,8 +104,6 @@ namespace LitMath
         /// <summary>
         /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/x(+1)).
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LogApprox(ref Vector256<float> x, ref Vector256<float> y)
         {
@@ -131,6 +125,9 @@ namespace LitMath
         }
 
 
+        /// <summary>
+        /// Computes the natural log on 4 doubles
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(ref Vector256<double> x, ref Vector256<double> y)
         {
@@ -138,12 +135,56 @@ namespace LitMath
             y = Avx.Multiply(LitConstants.Double.Log.LN2, y);
         }
 
+        /// <summary>
+        /// Computes the natural log on 4 doubles
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Ln(ref Vector256<double> x)
+        {
+            var y = Vector256.Create(0.0);
+            Log2(ref x, ref y);
+            return Avx.Multiply(LitConstants.Double.Log.LN2, y);
+        }
 
+        /// <summary>
+        /// Computes the natural log on 4 doubles
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Ln(Vector256<double> x)
+        {
+            Log2(ref x, ref x);
+            return Avx.Multiply(LitConstants.Double.Log.LN2, x);
+        }
+
+        /// <summary>
+        /// Computes the natural log on 8 floats
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(ref Vector256<float> x, ref Vector256<float> y)
         {
             Log2(ref x, ref y);
             y = Avx.Multiply(LitConstants.Float.Log.LN2, y);
+        }
+
+        /// <summary>
+        /// Computes the natural log on 8 floats
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Ln(ref Vector256<float> x)
+        {
+            var y = Vector256.Create(0.0f);
+            Log2(ref x, ref y);
+            return Avx.Multiply(LitConstants.Float.Log.LN2, y);
+        }
+
+        /// <summary>
+        /// Computes the natural log on 8 floats
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Ln(Vector256<float> x)
+        {
+            Log2(ref x, ref x);
+            return Avx.Multiply(LitConstants.Float.Log.LN2, x);
         }
 
 
@@ -166,7 +207,6 @@ namespace LitMath
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
-        /// <param name="n">The number of xx values to take an natural log of</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(ref Span<double> x, ref Span<double> y)
         {
@@ -177,13 +217,49 @@ namespace LitMath
             }
         }
 
+        /// <summary>
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        /// <param name="y">The return values</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<double> Ln(ref Span<double> x)
+        {
+            var y = GC.AllocateUninitializedArray<double>(x.Length);
+
+            unsafe
+            {
+                fixed (double* xx = x) fixed (double* yy = y)
+                    Ln(xx, yy, x.Length);
+            }
+
+            return y;
+        }
 
         /// <summary>
         /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
-        /// <param name="n">The number of xx values to take an natural log of</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<double> Ln(Span<double> x)
+        {
+            var y = GC.AllocateUninitializedArray<double>(x.Length);
+
+            unsafe
+            {
+                fixed (double* xx = x) fixed (double* yy = y)
+                    Ln(xx, yy, x.Length);
+            }
+
+            return y;
+        }
+
+        /// <summary>
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(ref Span<float> x, ref Span<float> y, int n)
         {
@@ -194,6 +270,43 @@ namespace LitMath
             }
         }
 
+        /// <summary>
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        /// <param name="y">The return values</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<float> Ln(ref Span<float> x)
+        {
+            var y = GC.AllocateUninitializedArray<float>(x.Length);
+
+            unsafe
+            {
+                fixed (float* xx = x) fixed (float* yy = y)
+                    Ln(xx, yy, x.Length);
+            }
+
+            return y;
+        }
+
+        /// <summary>
+        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        /// <param name="y">The return values</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<float> Ln(Span<float> x)
+        {
+            var y = GC.AllocateUninitializedArray<float>(x.Length);
+
+            unsafe
+            {
+                fixed (float* xx = x) fixed (float* yy = y)
+                    Ln(xx, yy, x.Length);
+            }
+
+            return y;
+        }
 
         /// <summary>
         /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 

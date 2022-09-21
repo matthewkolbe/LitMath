@@ -28,6 +28,44 @@ namespace LitMath
         /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
         /// <param name="x">A Span to the first argument</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<double> Exp(ref Span<double> x)
+        {
+            var y = GC.AllocateUninitializedArray<double>(x.Length);
+
+            unsafe
+            {
+                fixed (double* xx = x) fixed (double* yy = y)
+                    Exp(xx, yy, x.Length);
+            }
+
+            return y;
+        }
+
+
+        /// <summary>
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<double> Exp(Span<double> x)
+        {
+            var y = GC.AllocateUninitializedArray<double>(x.Length);
+
+            unsafe
+            {
+                fixed (double* xx = x) fixed (double* yy = y)
+                    Exp(xx, yy, x.Length);
+            }
+
+            return y;
+        }
+
+
+        /// <summary>
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Exp(ref Span<float> x, ref Span<float> y)
@@ -37,6 +75,44 @@ namespace LitMath
                 fixed (float* xx = x) fixed (float* yy = y)
                     Exp(xx, yy, x.Length);
             }
+        }
+
+
+        /// <summary>
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<float> Exp(ref Span<float> x)
+        {
+            var y = GC.AllocateUninitializedArray<float>(x.Length);
+
+            unsafe
+            {
+                fixed (float* xx = x) fixed (float* yy = y)
+                    Exp(xx, yy, x.Length);
+            }
+
+            return y;
+        }
+
+
+        /// <summary>
+        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="x">A Span to the first argument</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<float> Exp(Span<float> x)
+        {
+            var y = GC.AllocateUninitializedArray<float>(x.Length);
+
+            unsafe
+            {
+                fixed (float* xx = x) fixed (float* yy = y)
+                    Exp(xx, yy, x.Length);
+            }
+
+            return y;
         }
 
 
@@ -193,6 +269,33 @@ namespace LitMath
             Two(ref xx, ref y);
         }
 
+
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Exp(Vector256<double> x)
+        {
+            var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            Two(ref xx, ref xx);
+            return xx;
+        }
+
+
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Exp(ref Vector256<double> x)
+        {
+            var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            Two(ref xx, ref xx);
+            return xx;
+        }
+
+
         /// <summary>
         /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
         /// </summary>
@@ -203,6 +306,32 @@ namespace LitMath
         {
             var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
             Two(ref xx, ref y);
+        }
+
+
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Exp(Vector256<float> x)
+        {
+            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            Two(ref xx, ref xx);
+            return xx;
+        }
+
+
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Exp(ref Vector256<float> x)
+        {
+            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            Two(ref xx, ref xx);
+            return xx;
         }
 
 
