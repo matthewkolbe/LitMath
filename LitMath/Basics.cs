@@ -111,6 +111,60 @@ namespace LitMath
 
 
         /// <summary>
+        /// Does a dot product between two Span<Vector256<double>>. This is a little different from the other
+        /// dot products in this library, where instead of chunking a single array to make a dot product faster
+        /// on a single computation, it uses Avx to do four dot products at once.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Dot(Span<Vector256<double>> a, Span<Vector256<double>> b)
+        {
+            return Dot(ref a, ref b);
+        }
+
+        /// <summary>
+        /// Does a dot product between two Span<Vector256<double>>. This is a little different from the other
+        /// dot products in this library, where instead of chunking a single array to make a dot product faster
+        /// on a single computation, it uses Avx to do four dot products at once.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Dot(ref Span<Vector256<double>> a, ref Span<Vector256<double>> b)
+        {
+            if (a.Length == 1)
+                return Avx.Multiply(a[0], b[0]);
+
+            var r1 = Avx.Multiply(a[0], b[0]);
+            var r2 = Avx.Multiply(a[1], b[1]);
+            int i = 2;
+
+            for (; i < (a.Length - 1);)
+            {
+                r1 = Fma.MultiplyAdd(a[i], b[i], r1);
+                i++;
+                r2 = Fma.MultiplyAdd(a[i], b[i], r2);
+                i++;
+            }
+
+            if (i != a.Length)
+                r1 = Fma.MultiplyAdd(a[i], b[i], r1);
+
+            return Avx.Add(r1, r2);
+        }
+
+
+        /// <summary>
+        /// Does a dot product between two Span<Vector256<double>>. This is a little different from the other
+        /// dot products in this library, where instead of chunking a single array to make a dot product faster
+        /// on a single computation, it uses Avx to do four dot products at once.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Dot(ref Span<Vector256<double>> a, ref Span<Vector256<double>> b, ref Vector256<double> r)
+        {
+            r = Dot(ref a, ref b);
+        }
+
+
+
+        /// <summary>
         /// Does a dot product between two Spans
         /// </summary>
         /// <param name="x">Input</param>
@@ -524,6 +578,7 @@ namespace LitMath
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Dot(ref Vector256<double>[] a, ref Vector256<double>[] b, ref Vector256<double> r, int n)
         {
             int i = 0;
@@ -564,6 +619,7 @@ namespace LitMath
                 r = Fma.MultiplyAdd(a[i], b[i], r);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Dot(ref Span<Vector256<double>> a, ref Vector256<double>[] b, ref Vector256<double> r, int n)
         {
             int i = 0;
