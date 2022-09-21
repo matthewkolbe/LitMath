@@ -403,6 +403,30 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Mult(Vector256<double> a, Vector256<double> b)
+        {
+            return Avx.Multiply(a, b);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Mult(Vector256<double> a, Vector256<double> b, Vector256<double> c)
+        {
+            return Avx.Multiply(Avx.Multiply(a, b), c);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Mult(Vector256<double> a, Vector256<double> b, Vector256<double> c, Vector256<double> d)
+        {
+            return Avx.Multiply(Avx.Multiply(a, b), Avx.Multiply(c, d));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> Mult(Vector256<double> a, Vector256<double> b, Vector256<double> c, Vector256<double> d, Vector256<double> e)
+        {
+            return Avx.Multiply(Avx.Multiply(Avx.Multiply(a, b), Avx.Multiply(c, d)), e);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<float> IfLessThan(Vector256<float> x, Vector256<float> condition,
             Vector256<float> trueval, Vector256<float> falseval)
         {
@@ -441,6 +465,30 @@ namespace LitMath
         public static Vector256<float> Min(Vector256<float> x, Vector256<float> min)
         {
             return IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Mult(Vector256<float> a, Vector256<float> b)
+        {
+            return Avx.Multiply(a, b);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Mult(Vector256<float> a, Vector256<float> b, Vector256<float> c)
+        {
+            return Avx.Multiply(Avx.Multiply(a, b), c);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Mult(Vector256<float> a, Vector256<float> b, Vector256<float> c, Vector256<float> d)
+        {
+            return Avx.Multiply(Avx.Multiply(a, b), Avx.Multiply(c, d));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> Mult(Vector256<float> a, Vector256<float> b, Vector256<float> c, Vector256<float> d, Vector256<float> e)
+        {
+            return Avx.Multiply(Avx.Multiply(Avx.Multiply(a, b), Avx.Multiply(c, d)), e);
         }
     }
 }
