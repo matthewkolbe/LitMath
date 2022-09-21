@@ -1,6 +1,7 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using LitMath;
+using System.Runtime.Intrinsics;
 
 namespace LitMathTests
 {
@@ -25,6 +26,28 @@ namespace LitMathTests
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, n*(n+1)*0.5, 1e-8);
+            }
+        }
+
+        [Test]
+        public unsafe void DotProductConcurrentDouble()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<Vector256<double>> a = stackalloc Vector256<double>[n];
+                Span<Vector256<double>> b = stackalloc Vector256<double>[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                {
+                    a[i] = Vector256.Create(1.0);
+                    b[i] = Vector256.Create((double)(1 + i));
+                }
+
+                var result = LitBasics.Dot(a, b);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(result.GetElement(2), n * (n + 1) * 0.5, 1e-8);
             }
         }
 

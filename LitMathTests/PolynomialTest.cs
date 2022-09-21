@@ -24,7 +24,7 @@ namespace LitMathTests
                 p[i] = r.NextDouble();
 
             fixed (double* xx = x) fixed (double* yy = y) fixed (double* pp = p)
-                LitPolynomial.Compute(xx, pp, yy, n, m);
+                LitPolynomial.Value(xx, pp, yy, n, m);
 
             for (int i = 0; i < n; ++i)
             {
@@ -54,7 +54,7 @@ namespace LitMathTests
             }
 
             fixed (float* xx = x) fixed (float* yy = y) fixed (float* pp = p)
-                LitPolynomial.Compute(xx, pp, yy, n, m);
+                LitPolynomial.Value(xx, pp, yy, n, m);
 
             for (int i = 0; i < n; ++i)
             {

@@ -140,6 +140,44 @@ namespace LitMathTests
             Assert.AreEqual(b.GetElement(3), 0.0);
         }
 
+
+        [Test]
+        public void SignTest()
+        {
+            var a = Vector256.Create(0.0, 1.0, -3.0, -20.0);
+            var b = LitUtilities.Sign(a);
+
+            Assert.AreEqual(b.GetElement(0), 1.0);
+            Assert.AreEqual(b.GetElement(1), 1.0);
+            Assert.AreEqual(b.GetElement(2), -1.0);
+            Assert.AreEqual(b.GetElement(3), -1.0);
+        }
+
+        [Test]
+        public void MaxTest()
+        {
+            var a1 = Vector256.Create(0.0, 1.0, -3.0, -20.0);
+            var a2 = Vector256.Create(2.0, 1.0, -1.0, -30.0);
+            var b = LitUtilities.Max(a1, a2);
+
+            Assert.AreEqual(b.GetElement(0), 2.0);
+            Assert.AreEqual(b.GetElement(1), 1.0);
+            Assert.AreEqual(b.GetElement(2), -1.0);
+            Assert.AreEqual(b.GetElement(3), -20.0);
+        }
+
+        [Test]
+        public void MinTest()
+        {
+            var a1 = Vector256.Create(0.0, 1.0, -3.0, -20.0);
+            var a2 = Vector256.Create(2.0, 1.0, -1.0, -30.0);
+            var b = LitUtilities.Min(a1, a2);
+
+            Assert.AreEqual(b.GetElement(0), 0.0);
+            Assert.AreEqual(b.GetElement(1), 1.0);
+            Assert.AreEqual(b.GetElement(2), -3.0);
+            Assert.AreEqual(b.GetElement(3), -30.0);
+        }
     }
 
 }
