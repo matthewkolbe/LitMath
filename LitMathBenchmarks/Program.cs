@@ -15,7 +15,8 @@ BenchmarkRunner.Run(new[]{
             BenchmarkConverter.TypeToBenchmarks( typeof(TrigBenchmark), config),
             BenchmarkConverter.TypeToBenchmarks( typeof(DotProductBenchmark), config),
             BenchmarkConverter.TypeToBenchmarks( typeof(PolynomialBenchmark), config),
-            BenchmarkConverter.TypeToBenchmarks( typeof(NormDistBenchmark), config)
+            BenchmarkConverter.TypeToBenchmarks( typeof(NormDistBenchmark), config),
+            BenchmarkConverter.TypeToBenchmarks( typeof(UtilityBenchmarks), config)
             });
 
 Console.ReadLine();
