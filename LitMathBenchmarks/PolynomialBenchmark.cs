@@ -44,7 +44,7 @@ namespace LitMathBenchmarks
         public unsafe void LitPlynomialDouble()
         {
             fixed (double* xx = x) fixed (double* r = results) fixed (double* pp = p)
-                LitPolynomial.Compute(xx, pp, r, N, order);
+                LitPolynomial.Value(xx, pp, r, N, order);
         }
     }
 }
