@@ -143,6 +143,16 @@ namespace LitMath
             {
                 public static readonly Vector256<double> MAGIC_LONG_DOUBLE_ADD = Vector256.Create(6755399441055744.0);
                 public static readonly Vector256<double> NEGATIVE_ZERO = Vector256.Create(-0.0);
+                public static readonly Vector256<double> ONE = Vector256.Create(1.0);
+                public static readonly Vector256<double> NEGONE = Vector256.Create(-1.0);
+                public static readonly Vector256<double> ZERO = Vector256.Create(0.0);
+            }
+
+            public static class Polynomial
+            {
+                public static readonly Vector256<double> TWO = Vector256.Create(2.0);
+                public static readonly Vector256<double> ONE = Vector256.Create(1.0);
+                public static readonly Vector256<double> NEGONE = Vector256.Create(-1.0);
             }
         }
 
