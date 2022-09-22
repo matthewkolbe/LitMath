@@ -243,6 +243,7 @@ namespace LitMath
             public static readonly int MAX_MINUS_THREE = int.MaxValue - 3;
             public static readonly int MAX_MINUS_SEVEN = int.MaxValue - 7;
             public static readonly int MAX_MINUS_FIFTEEN = int.MaxValue - 15;
+            public static readonly Vector256<int> NEGONE = Vector256.Create(-1);
         }
     }
 }

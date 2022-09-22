@@ -490,5 +490,46 @@ namespace LitMath
         {
             return Avx.Multiply(Avx.Multiply(Avx.Multiply(a, b), Avx.Multiply(c, d)), e);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> IfLessThan(Vector128<int> x, Vector128<int> condition,
+            Vector128<int> trueval, Vector128<int> falseval)
+        {
+            return Avx.Add(
+                Avx.And(Avx.CompareLessThan(x, condition), trueval),
+                Avx.And(Avx.Or(Avx.CompareEqual(x, condition), Avx.CompareGreaterThan(x, condition)), falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> IfElse(Vector128<int> mask, Vector128<int> trueval, Vector128<int> falseval)
+        {
+            return Avx2.Add(
+                    Avx2.And(mask, trueval),
+                    Avx2.AndNot(mask, falseval));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref Vector128<int> x, Vector128<int> max)
+        {
+            x = IfElse(Avx2.CompareGreaterThan(x, max), x, max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Min(ref Vector128<int> x, Vector128<int> min)
+        {
+            x = IfElse(Avx.CompareLessThan(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> Max(Vector128<int> x, Vector128<int> max)
+        {
+            return IfElse(Avx2.CompareGreaterThan(x, max), x, max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> Min(Vector128<int> x, Vector128<int> min)
+        {
+            return IfElse(Avx.CompareLessThan(x, min), x, min);
+        }
     }
 }
