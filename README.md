@@ -17,7 +17,7 @@
 int n = 40;
 Span<double> x = new Span<double>(Enumerable.Range(0 , n).Select(z => (double)z/n).ToArray());
 Span<double> y = new Span<double>(new double[n]);
-LitExp.Exp(ref x, ref y);
+Lit.Exp(ref x, ref y);
  ```
  
 ## Parallel Processing
