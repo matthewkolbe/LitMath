@@ -7,17 +7,16 @@ namespace LitMathTests
     public class ExpTest
     {
         [Test]
-        public unsafe void AvxExpDoubleAccuracy()
+        public void AvxExpDoubleAccuracy()
         {
-            var a = new double[1000];
-            var b = stackalloc double[1000];
+            Span<double> a = stackalloc double[1000];
+            Span<double> b = stackalloc double[1000];
             var r = new Random(10);
 
             for (int i = 0; i < 1000; ++i)
                 a[i] = 2*(r.NextDouble() - 0.5);
 
-            fixed (double* aa = a)
-            LitExp.Exp(aa, b, 1000);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
                 Assert.AreEqual(Math.Exp(a[i]), b[i], 3e-16 * b[i]);
@@ -36,7 +35,7 @@ namespace LitMathTests
                     a[i] = (i - n / 2) + r.NextDouble();
 
 
-                LitExp.Exp(ref a, ref b);
+                Lit.Exp(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(b[i], Math.Exp(a[i]), Math.Max(5e-15 * b[i], 1e-20));
@@ -44,25 +43,24 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxExpDoubleLargeIsInf()
+        public void AvxExpDoubleLargeIsInf()
         {
-            var a = new double[121];
-            var b = stackalloc double[121];
+            Span<double> a = stackalloc double[121];
+            Span<double> b = stackalloc double[121];
 
             a[0] = double.PositiveInfinity;
 
             for (int i = 1; i < 121; ++i)
                 a[i] = 708 + 10.1 * i;
 
-            fixed (double* aa = a)
-                LitExp.Exp(aa, b, 121);
+            Lit.Exp(ref a, ref  b);
 
             for (int i = 0; i < 121; ++i)
                 Assert.IsTrue(double.IsInfinity(b[i]));
         }
 
         [Test]
-        public unsafe void AvxExpDoubleNegInfZero()
+        public void AvxExpDoubleNegInfZero()
         {
             Span<double> a = stackalloc double[4];
             Span<double> b = stackalloc double[4];
@@ -72,40 +70,38 @@ namespace LitMathTests
             a[2] = -1e100;
             a[3] = -1e50;
 
-            LitExp.Exp(ref a, ref b);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(0.0, b[i]);
         }
 
         [Test]
-        public unsafe void AvxExpDoubleNaNIsNaN()
+        public void AvxExpDoubleNaNIsNaN()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = stackalloc double[4];
+            Span<double> b = stackalloc double[4];
 
             for (int i = 0; i < 4; ++i)
                 a[i] = double.NaN;
 
-            fixed (double* aa = a)
-                LitExp.Exp(aa, b, 4);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
         }
 
         [Test]
-        public unsafe void AvxExpFloatAccuracy()
+        public void AvxExpFloatAccuracy()
         {
-            var a = new float[160];
-            var b = stackalloc float[160];
+            Span<float> a = stackalloc float[160];
+            Span<float> b = stackalloc float[160];
             var r = new Random(10);
 
             for (int i = 0; i < 160; ++i)
                 a[i] = 6*(float)(r.NextDouble()-0.5);
 
-            fixed (float* aa = a)
-                LitExp.Exp(aa, b, 160);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 160; ++i)
                 Assert.AreEqual(b[i], Math.Exp(a[i]), 5e-7 * Math.Abs(b[i]));
@@ -124,7 +120,7 @@ namespace LitMathTests
                     a[i] = (float)((i - n / 2) + r.NextDouble());
 
 
-                LitExp.Exp(ref a, ref b);
+                Lit.Exp(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Exp(a[i]) / b[i], 1e-5);
@@ -132,50 +128,48 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxExpFloatLargeIsInf()
+        public void AvxExpFloatLargeIsInf()
         {
-            var a = new float[121];
-            var b = stackalloc float[121];
+            Span<float> a = stackalloc float[121];
+            Span<float> b = stackalloc float[121];
 
             a[0] = float.PositiveInfinity;
 
             for (int i = 1; i < 121; ++i)
                 a[i] = 89f + 10.1f * i;
 
-            fixed (float* aa = a)
-                LitExp.Exp(aa, b, 121);
+            
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 121; ++i)
                 Assert.IsTrue(float.IsInfinity(b[i]));
         }
 
         [Test]
-        public unsafe void AvxExpFloatNegInfZero()
+        public void AvxExpFloatNegInfZero()
         {
-            var a = new float[8];
-            var b = stackalloc float[8];
+            Span<float> a = stackalloc float[8];
+            Span<float> b = stackalloc float[8];
 
             for (int i = 0; i < 8; ++i)
                 a[i] = float.NegativeInfinity;
 
-            fixed (float* aa = a)
-                LitExp.Exp(aa, b, 8);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 8; ++i)
                 Assert.AreEqual(0.0f, b[i], 1e-10);
         }
 
         [Test]
-        public unsafe void AvxExpFloatNaNIsNaN()
+        public void AvxExpFloatNaNIsNaN()
         {
-            var a = new float[2];
-            var b = stackalloc float[2];
+            Span<float> a = stackalloc float[2];
+            Span<float> b = stackalloc float[2];
 
             for (int i = 0; i < 2; ++i)
                 a[i] = float.NaN;
 
-            fixed (float* aa = a)
-                LitExp.Exp(aa, b, 2);
+            Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 2; ++i)
                 Assert.IsTrue(float.IsNaN(b[i]));

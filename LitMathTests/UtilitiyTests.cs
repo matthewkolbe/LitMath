@@ -13,7 +13,7 @@ namespace LitMathTests
         public unsafe void AbsTest()
         {
             var a = Vector256.Create(1.0, 0.0, -3.14, double.NegativeInfinity);
-            var b = LitUtilities.Abs(ref a);
+            var b = Util.Abs(ref a);
 
             Assert.AreEqual(b.GetElement(0), Math.Abs(a.GetElement(0)));
             Assert.AreEqual(b.GetElement(1), Math.Abs(a.GetElement(1)));
@@ -22,12 +22,12 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AbsSumTest()
+        public void AbsSumTest()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var b = new double[n];
+                Span<double> a = stackalloc double[n];
+                double[] b = new double[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
@@ -36,7 +36,7 @@ namespace LitMathTests
                     b[i] = Math.Abs(a[i]);
                 }
 
-                var result = LitUtilities.AbsSum(a, n);
+                var result = Util.AbsSum(ref a);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, b.Sum(), 1e-8);
@@ -44,13 +44,13 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ApplyDoubleTest()
+        public void ApplyDoubleTest()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
 
-                LitUtilities.Apply(a, n, 10.0);
+                Util.Apply(ref a, 10.0);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], 10.0);
@@ -58,18 +58,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void CopyDoubleTest()
+        public void CopyDoubleTest()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var b = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = r.NextDouble() - 0.5;
 
-                LitUtilities.Copy(a, b, n);
+                Util.Copy(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -77,18 +77,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void CopyIntTest()
+        public void CopyIntTest()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc int[n];
-                var b = stackalloc int[n];
+                Span<int> a = stackalloc int[n];
+                Span<int> b = stackalloc int[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
-                LitUtilities.Copy(a, b, n);
+                Util.Copy(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -100,14 +100,14 @@ namespace LitMathTests
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc float[n];
-                var b = stackalloc float[n];
+                Span<float> a = stackalloc float[n];
+                Span<float> b = stackalloc float[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)(r.NextDouble() - 0.5);
 
-                LitUtilities.Copy(a, b, n);
+                Util.Copy(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -119,7 +119,7 @@ namespace LitMathTests
         {
             var a = Vector256.Create(0L, -50L, 256L, 1000000L);
             var b = Vector256.Create(0.0);
-            LitUtilities.ConvertLongToDouble(ref a, ref b);
+            Util.ConvertLongToDouble(ref a, ref b);
 
             Assert.AreEqual(b.GetElement(0), 0.0);
             Assert.AreEqual(b.GetElement(1), -50.0);
@@ -132,7 +132,7 @@ namespace LitMathTests
         {
             var a = Vector256.Create(0.0, 1.0, -3.0, -20.0);
             var zero = Vector256.Create(0.0);
-            var b = LitUtilities.IfElse(Avx.CompareGreaterThanOrEqual(a, zero), a, zero);
+            var b = Util.IfElse(Avx.CompareGreaterThanOrEqual(a, zero), a, zero);
 
             Assert.AreEqual(b.GetElement(0), 0.0);
             Assert.AreEqual(b.GetElement(1), 1.0);
@@ -145,7 +145,7 @@ namespace LitMathTests
         public void SignTest()
         {
             var a = Vector256.Create(0.0, 1.0, -3.0, -20.0);
-            var b = LitUtilities.Sign(a);
+            var b = Util.Sign(a);
 
             Assert.AreEqual(b.GetElement(0), 1.0);
             Assert.AreEqual(b.GetElement(1), 1.0);
@@ -158,7 +158,7 @@ namespace LitMathTests
         {
             var a1 = Vector256.Create(0.0, 1.0, -3.0, -20.0);
             var a2 = Vector256.Create(2.0, 1.0, -1.0, -30.0);
-            var b = LitUtilities.Max(a1, a2);
+            var b = Util.Max(a1, a2);
 
             Assert.AreEqual(b.GetElement(0), 2.0);
             Assert.AreEqual(b.GetElement(1), 1.0);
@@ -171,7 +171,7 @@ namespace LitMathTests
         {
             var a1 = Vector256.Create(0.0, 1.0, -3.0, -20.0);
             var a2 = Vector256.Create(2.0, 1.0, -1.0, -30.0);
-            var b = LitUtilities.Min(a1, a2);
+            var b = Util.Min(a1, a2);
 
             Assert.AreEqual(b.GetElement(0), 0.0);
             Assert.AreEqual(b.GetElement(1), 1.0);

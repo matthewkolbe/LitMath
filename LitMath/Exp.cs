@@ -1,29 +1,14 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
-    public static class LitExp
+    public static partial class Lit
     {
-        /// <summary>
-        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Exp(ref Span<double> x, ref Span<double> y)
-        {
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
-        }
-
-
         /// <summary>
         /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
@@ -31,14 +16,8 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<double> Exp(ref Span<double> x)
         {
-            var y = GC.AllocateUninitializedArray<double>(x.Length);
-
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
-
+            var y = new Span<double>(GC.AllocateUninitializedArray<double>(x.Length));
+            Exp(ref x, ref y);
             return y;
         }
 
@@ -50,31 +29,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<double> Exp(Span<double> x)
         {
-            var y = GC.AllocateUninitializedArray<double>(x.Length);
-
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
-
-            return y;
-        }
-
-
-        /// <summary>
-        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Exp(ref Span<float> x, ref Span<float> y)
-        {
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
+            return Exp(ref x);
         }
 
 
@@ -85,14 +40,8 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<float> Exp(ref Span<float> x)
         {
-            var y = GC.AllocateUninitializedArray<float>(x.Length);
-
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
-
+            var y = new Span<float>(GC.AllocateUninitializedArray<float>(x.Length));
+            Exp(ref x, ref y);
             return y;
         }
 
@@ -104,17 +53,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<float> Exp(Span<float> x)
         {
-            var y = GC.AllocateUninitializedArray<float>(x.Length);
+            return Exp(ref x);
 
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Exp(xx, yy, x.Length);
-            }
-
-            return y;
         }
-
 
         /// <summary>
         /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
@@ -122,23 +63,26 @@ namespace LitMath
         /// <param name="xx">A pointer to the first argument</param>
         /// <param name="yy">The return values</param>
         /// <param name="n">The number of xx values to take an exponential of</param>
-        [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Exp(double* xx, double* yy, int n)
+        public static void Exp(ref Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
+            var n = xx.Length;
+            ref var x = ref MemoryMarshal.GetReference(xx);
+            ref var y = ref MemoryMarshal.GetReference(yy);
 
             // if n < 4, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                var tmpx = stackalloc double[VSZ];
+                Span<double> tmp = stackalloc double[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
 
-                Exp(tmpx, tmpx);
+                Exp(ref tmpx, ref tmpx, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
 
                 return;
             }
@@ -148,25 +92,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
             }
         }
 
@@ -179,21 +123,25 @@ namespace LitMath
         /// <param name="n">The number of xx values to take an exponential of</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Exp(float* xx, float* yy, int n)
+        public static void Exp(ref Span<float> xx, ref Span<float> yy)
         {
             const int VSZ = 8;
+            var n = xx.Length;
+            ref var x = ref MemoryMarshal.GetReference(xx);
+            ref var y = ref MemoryMarshal.GetReference(yy);
 
             // if n < 8, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                var tmpx = stackalloc float[VSZ];
+                Span<float> tmp = stackalloc float[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
 
-                Exp(tmpx, tmpx);
+                Exp(ref tmpx, ref tmpx, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
 
                 return;
             }
@@ -203,25 +151,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 8 values in a standard loop
             for (; i < (n - 7); i += VSZ)
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
 
             // Cleans up any excess individual values (if n%8 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Exp(xx + i, yy + i);
+                Exp(ref x, ref y, i);
             }
         }
 
@@ -231,14 +179,15 @@ namespace LitMath
         /// </summary>
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values</param>
+        /// <param name="index">The index offset of the operation starts on</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Exp(double* xx, double* yy)
+        public static void Exp(ref double xx, ref double yy, int index)
         {
             // Instead of calculating e^x directly, calculate 2^(x / ln(2))
-            var x = Avx.LoadVector256(xx);
-            x = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            var x = Util.LoadV256(ref xx, index);
+            x = Avx.Multiply(x, Lit.Double.Exp.LOG2EF);
             Two(ref x, ref x);
-            Avx.Store(yy, x);
+            Util.StoreV256(ref yy, index, x);
         }
 
 
@@ -247,13 +196,15 @@ namespace LitMath
         /// </summary>
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
+        /// <param name="index">The index offset of the operation starts on</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Exp(float* xx, float* yy)
+        public static void Exp(ref float xx, ref float yy, int index)
         {
-            var x = Avx.LoadVector256(xx);
-            x = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            // Instead of calculating e^x directly, calculate 2^(x / ln(2))
+            var x = Util.LoadV256(ref xx, index);
+            x = Avx.Multiply(x, Lit.Float.Exp.LOG2EF);
             Two(ref x, ref x);
-            Avx.Store(yy, x);
+            Util.StoreV256(ref yy, index, x);
         }
 
 
@@ -265,7 +216,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Exp(ref Vector256<double> x, ref Vector256<double> y)
         {
-            var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Double.Exp.LOG2EF);
             Two(ref xx, ref y);
         }
 
@@ -277,7 +228,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> Exp(Vector256<double> x)
         {
-            var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Double.Exp.LOG2EF);
             Two(ref xx, ref xx);
             return xx;
         }
@@ -290,7 +241,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> Exp(ref Vector256<double> x)
         {
-            var xx = Avx.Multiply(x, LitConstants.Double.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Double.Exp.LOG2EF);
             Two(ref xx, ref xx);
             return xx;
         }
@@ -304,7 +255,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Float.Exp.LOG2EF);
             Two(ref xx, ref y);
         }
 
@@ -316,7 +267,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<float> Exp(Vector256<float> x)
         {
-            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Float.Exp.LOG2EF);
             Two(ref xx, ref xx);
             return xx;
         }
@@ -329,7 +280,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<float> Exp(ref Vector256<float> x)
         {
-            var xx = Avx.Multiply(x, LitConstants.Float.Exp.LOG2EF);
+            var xx = Avx.Multiply(x, Lit.Float.Exp.LOG2EF);
             Two(ref xx, ref xx);
             return xx;
         }
@@ -346,10 +297,10 @@ namespace LitMath
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
             // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
             // zero. We add this to the result at the end, which will force y[1] to be infinity.
-            var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Double.Exp.HIGH), LitConstants.Double.Exp.POSITIVE_INFINITY);
+            var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, Lit.Double.Exp.HIGH), Lit.Double.Exp.POSITIVE_INFINITY);
 
             // Bound x by the maximum and minimum values this algorithm will handle.
-            var xx = Avx.Max(Avx.Min(x, LitConstants.Double.Exp.THIGH), LitConstants.Double.Exp.TLOW);
+            var xx = Avx.Max(Avx.Min(x, Lit.Double.Exp.THIGH), Lit.Double.Exp.TLOW);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
@@ -360,22 +311,22 @@ namespace LitMath
 
             // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
             xx = Avx.Subtract(xx, fx);
-            y = Fma.MultiplyAdd(LitConstants.Double.Exp.T11, xx, LitConstants.Double.Exp.T10);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T9);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T8);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T7);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T6);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T5);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T4);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T3);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T2);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T1);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Double.Exp.T0);
+            y = Fma.MultiplyAdd(Lit.Double.Exp.T11, xx, Lit.Double.Exp.T10);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T9);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T8);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T7);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T6);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T5);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T4);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T3);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T2);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T1);
+            y = Fma.MultiplyAdd(y, xx, Lit.Double.Exp.T0);
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
             // since the exponent of a double will never be more than a max int32, then from int to long.
-            fx = Avx.Add(fx, LitConstants.Double.Exp.MAGIC_LONG_DOUBLE_ADD);
-            fx = Avx2.ShiftLeftLogical(Avx2.Add(Vector256.AsInt64(fx), LitConstants.Long.ONE_THOUSAND_TWENTY_THREE), 52).AsDouble();
+            fx = Avx.Add(fx, Lit.Double.Exp.MAGIC_LONG_DOUBLE_ADD);
+            fx = Avx2.ShiftLeftLogical(Avx2.Add(Vector256.AsInt64(fx), Lit.Long.ONE_THOUSAND_TWENTY_THREE), 52).AsDouble();
 
             // Combines the two exponentials and the end adjustments into the result.
             y = Fma.MultiplyAdd(y, fx, end);
@@ -393,10 +344,10 @@ namespace LitMath
             // Checks if x is greater than the highest acceptable argument. Stores the information for later to
             // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
             // zero. We add this to the result at the end, which will force y[1] to be infinity.
-            var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Float.Exp.HIGH), LitConstants.Float.Exp.POSITIVE_INFINITY);
+            var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, Lit.Float.Exp.HIGH), Lit.Float.Exp.POSITIVE_INFINITY);
 
             // Bound x by the maximum and minimum values this algorithm will handle.
-            var xx = Avx.Max(Avx.Min(x, LitConstants.Float.Exp.THIGH), LitConstants.Float.Exp.TLOW);
+            var xx = Avx.Max(Avx.Min(x, Lit.Float.Exp.THIGH), Lit.Float.Exp.TLOW);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
@@ -407,77 +358,20 @@ namespace LitMath
 
             // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
             xx = Avx.Subtract(xx, fx);
-            y = Fma.MultiplyAdd(LitConstants.Float.Exp.T7, xx, LitConstants.Float.Exp.T6);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T5);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T4);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T3);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T2);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T1);
-            y = Fma.MultiplyAdd(y, xx, LitConstants.Float.Exp.T0);
+            y = Fma.MultiplyAdd(Lit.Float.Exp.T7, xx, Lit.Float.Exp.T6);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T5);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T4);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T3);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T2);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T1);
+            y = Fma.MultiplyAdd(y, xx, Lit.Float.Exp.T0);
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
             // since the exponent of a double will never be more than a max int32, then from int to long.
-            fx = Vector256.AsSingle(Avx2.ShiftLeftLogical(Avx2.Add(Avx2.ConvertToVector256Int32(fx), LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN), 23));
+            fx = Vector256.AsSingle(Avx2.ShiftLeftLogical(Avx2.Add(Avx2.ConvertToVector256Int32(fx), Lit.Int.ONE_HUNDRED_TWENTY_SEVEN), 23));
 
             // Combines the two exponentials and the end adjustments into the result.
             y = Fma.MultiplyAdd(y, fx, end);
         }
-
-        ///// <summary>
-        ///// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics.
-        ///// </summary>
-        ///// <param name="x">A reference to the 8 arguments</param>
-        ///// <param name="y">The 8 results</param>
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //public static void Exp(ref Vector256<float> x, ref Vector256<float> y)
-        //{
-            
-
-        //    // Checks if x is greater than the highest acceptable argument. Stores the information for later to
-        //    // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
-        //    // zero. We add this to the result at the end, which will force y[1] to be infinity.
-        //    var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, LitConstants.Float.Exp.HIGH), LitConstants.Float.Exp.POSITIVE_INFINITY);
-
-        //    // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
-        //    // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
-        //    // it acts like the infinity adjustment.
-        //    end = Avx.Add(Avx.CompareNotEqual(x, x), end);
-
-        //    // Bound x by the maximum and minimum values this algorithm will handle.
-        //    var xx = Avx.Min(x, LitConstants.Float.Exp.HIGH);
-        //    xx = Avx.Max(xx, LitConstants.Float.Exp.LOW);
-
-        //    // Expresses exp(x) as exp(g)*exp(n*log(2)) = exp(g) * 2^n. Variable names do not match, since I reuse
-        //    // variables to save allocations.
-        //    var fx = Avx.Multiply(xx, LitConstants.Float.Exp.LOG2EF);
-            
-        //    // This is n
-        //    fx = Avx.RoundToNearestInteger(fx);
-
-        //    // This section gets a series approximation for exp(g) in (1, 2) since that is g's range.
-        //    var z = Avx.Multiply(fx, LitConstants.Float.Exp.INVERSE_LOG2EF);
-        //    xx = Avx.Subtract(xx, z);
-        //    z = Avx.Multiply(xx, xx);
-        //    y = Vector256.Create(1.9875691500E-4f);
-        //    y = Avx.Multiply(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.P1);
-        //    y = Avx.Multiply(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.P2);
-        //    y = Avx.Multiply(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.P3);
-        //    y = Avx.Multiply(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.P4);
-        //    y = Avx.Multiply(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.P5);
-        //    y = Avx.Multiply(y, z);
-        //    y = Avx.Add(y, xx);
-        //    y = Avx.Add(y, LitConstants.Float.Exp.ONE);
-
-        //    // Converts n to 2^n
-        //    fx = Vector256.AsSingle(Avx2.ShiftLeftLogical(Avx2.Add(Avx2.ConvertToVector256Int32(fx), LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN), 23));
-
-        //    // Combines the two exponentials and the end adjustments into the result.
-        //    y = Avx.Add(Avx.Multiply(y, fx), end);
-        //}
     }
 }

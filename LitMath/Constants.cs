@@ -5,7 +5,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
-    public static class LitConstants
+    public static partial class Lit
     {
         public static class Double
         {
@@ -37,12 +37,12 @@ namespace LitMath
 
             public static class Trig
             {
-                public static readonly Vector256<double> TWOPI = Vector256.Create(2.0 * Math.PI);
-                public static readonly Vector256<double> PI = Vector256.Create(Math.PI);
-                public static readonly Vector256<double> HALFPI = Vector256.Create(0.5 * Math.PI);
-                public static readonly Vector256<double> NEGHALFPI = Vector256.Create(-Math.PI * 0.5);
-                public static readonly Vector256<double> QUARTERPI = Vector256.Create(0.25 * Math.PI);
-                public static readonly Vector256<double> THIRDPI = Vector256.Create(Math.PI / 3);
+                public static readonly Vector256<double> TWOPI = Vector256.Create(2.0 * System.Math.PI);
+                public static readonly Vector256<double> PI = Vector256.Create(System.Math.PI);
+                public static readonly Vector256<double> HALFPI = Vector256.Create(0.5 * System.Math.PI);
+                public static readonly Vector256<double> NEGHALFPI = Vector256.Create(-System.Math.PI * 0.5);
+                public static readonly Vector256<double> QUARTERPI = Vector256.Create(0.25 * System.Math.PI);
+                public static readonly Vector256<double> THIRDPI = Vector256.Create(System.Math.PI / 3);
                 public static readonly Vector256<double> SIN_OF_QUARTERPI = Vector256.Create(0.7071067811865475244008443621);
                 public static readonly Vector256<double> P3 = Vector256.Create(-0.166666666666663509013977  );
                 public static readonly Vector256<double> P5 = Vector256.Create(0.008333333333299304989001   );
@@ -124,7 +124,7 @@ namespace LitMath
                 public static readonly Vector256<double> SQRT2 = Vector256.Create(1.4142135623730950488);
                 public static readonly Vector256<double> HALF = Vector256.Create(0.5);
                 public static readonly Vector256<double> NEGATIVE_ZERO = Vector256.Create(-0.0);
-                public static readonly Vector256<double> ONE_OVER_PI = Vector256.Create(1.0/Math.PI);
+                public static readonly Vector256<double> ONE_OVER_PI = Vector256.Create(1.0/ System.Math.PI);
                 public static readonly Vector256<double> E1 = Vector256.Create(-0.17916959767319535  );
                 public static readonly Vector256<double> E2 = Vector256.Create(-0.18542742267595866  );
                 public static readonly Vector256<double> E3 = Vector256.Create(-0.13452915843880847  );

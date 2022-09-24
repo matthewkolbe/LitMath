@@ -27,8 +27,8 @@ namespace LitMathBenchmarks
 
             for (int i = 0; i < N; i++)
             {
-                exps[i] = Math.Log(100 * (i + 1) / N);
-                fexps[i] = (float)Math.Log(100 * (i + 1) / N);
+                exps[i] = System.Math.Log(100 * (i + 1) / N);
+                fexps[i] = (float)System.Math.Log(100 * (i + 1) / N);
             }
         }
 
@@ -36,43 +36,44 @@ namespace LitMathBenchmarks
         public void NaiveExpDouble()
         {
             for (int i = 0; i < N; i++)
-                temp = Math.Exp(exps[i]);
+                temp = System.Math.Exp(exps[i]);
         }
 
         [Benchmark]
-        public unsafe void LitExpDouble()
+        public void LitExpDouble()
         {
-            fixed (double* ex = exps) fixed (double* r = results)
-                LitExp.Exp(ex, r, N);
+            var ex = exps.AsSpan();
+            var r = results.AsSpan();
+            Lit.Exp(ref ex, ref r);
         }
 
         [Benchmark]
-        public unsafe void LitExpDoubleParallel()
+        public void LitExpDoubleParallel()
         {
             var n = N / cores;
 
             Parallel.For(0, cores, i =>
             {
-                fixed (double* ex = exps) fixed (double* r = results)
-                    LitExp.Exp(ex + i * n, r + i * n, n);
+                var ex = exps.AsSpan().Slice(i, n);
+                var r = results.AsSpan().Slice(i, n);
+                Lit.Exp(ref ex, ref r);
             });
 
         }
 
         [Benchmark]
-        public unsafe void MklNet()
+        public void MklNet()
         {
             Vml.Exp(exps, results);
         }
 
 
         [Benchmark]
-        public unsafe void LitExpFloat()
+        public void LitExpFloat()
         {
-            fixed (float* ex = fexps) fixed (float* r = fresults)
-            {
-                LitExp.Exp(ex, r, N);
-            }
+            var ex = fexps.AsSpan();
+            var r = fresults.AsSpan();
+            Lit.Exp(ref ex, ref r);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace LitMathTests
                     a[i] = 0.5* Math.PI*r.NextDouble();
 
 
-                LitTrig.Sin(ref a, ref b);
+                Lit.Sin(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(Math.Sin(a[i]), b[i], 1e-15);
@@ -28,35 +28,33 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxSineDoubleAccuracyLarger()
+        public void AvxSineDoubleAccuracyLarger()
         {
-            var a = new double[113];
-            var b = stackalloc double[113];
+            Span<double> a = new double[113];
+            Span<double> b = new double[113];
             var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
 
-            fixed (double* aa = a)
-                LitTrig.Sin(aa, b, 113);
+            Lit.Sin(ref a, ref b);
 
             for (int i = 0; i < 113; ++i)
                 Assert.AreEqual(1.0, Math.Sin(a[i]) / b[i], 1e-10);
         }
 
         [Test]
-        public unsafe void AvxSineDoubleNaNAndInfAreNan()
+        public void AvxSineDoubleNaNAndInfAreNan()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = new double[4];
+            Span<double> b = new double[4];
 
             a[0] = double.NaN;
             a[1] = double.PositiveInfinity;
             a[2] = double.NegativeInfinity;
             a[3] = 0.0;
 
-            fixed (double* aa = a)
-                LitTrig.Sin(aa, b, 4);
+            Lit.Sin(ref a, ref b);
 
             for (int i = 0; i < 3; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
@@ -77,7 +75,7 @@ namespace LitMathTests
                     a[i] = 8 * Math.PI * (r.NextDouble() - 0.5);
 
 
-                LitTrig.Cos(ref a, ref b);
+                Lit.Cos(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(Math.Cos(a[i]), b[i], 1e-15);
@@ -85,42 +83,40 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxCosDoubleAccuracyLarger()
+        public void AvxCosDoubleAccuracyLarger()
         {
-            var a = new double[113];
-            var b = stackalloc double[113];
+            Span<double> a = new double[113];
+            Span<double> b = new double[113];
             var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
 
-            fixed (double* aa = a)
-                LitTrig.Cos(aa, b, 113);
+            Lit.Cos(ref a, ref b);
 
             for (int i = 0; i < 113; ++i)
                 Assert.AreEqual(1.0, Math.Cos(a[i]) / b[i], 1e-9);
         }
 
         [Test]
-        public unsafe void AvxCosDoubleNaNAndInfAreNan()
+        public void AvxCosDoubleNaNAndInfAreNan()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = new double[4];
+            Span<double> b = new double[4];
 
             a[0] = double.NaN;
             a[1] = double.PositiveInfinity;
             a[2] = double.NegativeInfinity;
             a[3] = double.NaN;
 
-            fixed (double* aa = a)
-                LitTrig.Cos(aa, b, 4);
+            Lit.Cos(ref a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
         }
 
         [Test]
-        public unsafe void AvxTanDoubleAccuracy()
+        public void AvxTanDoubleAccuracy()
         {
             int N = 10000;
             Span<double> a = stackalloc double[N];
@@ -130,14 +126,14 @@ namespace LitMathTests
             for (int i = 0; i < N; ++i)
                 a[i] = 0.25* Math.PI * r.NextDouble();
 
-            LitTrig.Tan(ref a, ref b);
+            Lit.Tan(ref a, ref b);
 
             for (int i = 0; i < N; ++i)
                 Assert.AreEqual(Math.Tan(a[i]), b[i], Math.Max(b[i] * 5e-15, 7e-17));
         }
 
         [Test]
-        public unsafe void AvxTanContinuousAt007()
+        public void AvxTanContinuousAt007()
         {
             int N = 4;
             Span<double> a = stackalloc double[N];
@@ -145,7 +141,7 @@ namespace LitMathTests
             a[0] = 0.07 - 1e-12;
             a[1] = 0.07 + 1e-12;
 
-            LitTrig.Tan(ref a, ref b);
+            Lit.Tan(ref a, ref b);
 
             Assert.Greater(b[1], b[0]);
         }
@@ -163,7 +159,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = 0.5 * Math.PI * r.NextDouble();
 
-                LitTrig.Tan(ref a, ref b);
+                Lit.Tan(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     if (b[i] > 1)
@@ -174,42 +170,40 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxTanDoubleAccuracyLarger()
+        public void AvxTanDoubleAccuracyLarger()
         {
-            var a = new double[113];
-            var b = stackalloc double[113];
+            Span<double> a = new double[113];
+            Span<double> b = new double[113];
             var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
 
-            fixed (double* aa = a)
-                LitTrig.Tan(aa, b, 113);
+            Lit.Tan(ref a, ref b);
 
             for (int i = 0; i < 113; ++i)
                 Assert.AreEqual(1.0, Math.Tan(a[i]) / b[i], 1e-7);
         }
 
         [Test]
-        public unsafe void AvxTanDoubleNaNAndInfAreNan()
+        public void AvxTanDoubleNaNAndInfAreNan()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = new double[4];
+            Span<double> b = new double[4];
 
             a[0] = double.NaN;
             a[1] = double.PositiveInfinity;
             a[2] = double.NegativeInfinity;
             a[3] = double.NaN;
 
-            fixed (double* aa = a)
-                LitTrig.Tan(aa, b, 4);
+            Lit.Tan(ref a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(double.NaN, b[i]);
         }
 
         [Test]
-        public unsafe void AvxATanDoubleAccuracy()
+        public void AvxATanDoubleAccuracy()
         {
             Span<double> a = stackalloc double[1000];
             Span<double> b = stackalloc double[1000];
@@ -219,7 +213,7 @@ namespace LitMathTests
                 a[i] = 10.0*r.NextDouble() - 5.0;
 
 
-            LitTrig.ATan(ref a, ref b);
+            Lit.ATan(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
                 Assert.AreEqual(Math.Atan(a[i]), b[i], Math.Abs(b[i]) * 1e-10);
@@ -238,7 +232,7 @@ namespace LitMathTests
                     a[i] = i + r.NextDouble() - n/2;
 
 
-                LitTrig.ATan(ref a, ref b);
+                Lit.ATan(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
@@ -246,35 +240,33 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void AvxATanDoubleAccuracyLarger()
+        public void AvxATanDoubleAccuracyLarger()
         {
-            var a = new double[113];
-            var b = stackalloc double[113];
+            Span<double> a = stackalloc double[113];
+            Span<double> b = stackalloc double[113];
             var r = new Random(10);
 
             for (int i = 0; i < 113; ++i)
                 a[i] = 100000.0 * r.NextDouble() - 50000.0;
 
-            fixed (double* aa = a)
-                LitTrig.ATan(aa, b, 113);
+            Lit.ATan(ref a, ref b);
 
             for (int i = 0; i < 113; ++i)
                 Assert.AreEqual(1.0, Math.Atan(a[i]) / b[i], 1e-10);
         }
 
         [Test]
-        public unsafe void AvxATanDoubleNaNAndInfAreRight()
+        public void AvxATanDoubleNaNAndInfAreRight()
         {
-            var a = new double[4];
-            var b = stackalloc double[4];
+            Span<double> a = new double[4];
+            Span<double> b = new double[4];
 
             a[0] = double.NaN;
             a[1] = double.PositiveInfinity;
             a[2] = double.NegativeInfinity;
             a[3] = double.NaN;
 
-            fixed (double* aa = a)
-                LitTrig.ATan(aa, b, 4);
+            Lit.ATan(ref a, ref b);
 
             Assert.AreEqual(double.NaN, b[0]);
             Assert.AreEqual(0.5*Math.PI, b[1], 1e-9);

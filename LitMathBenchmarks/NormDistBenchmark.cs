@@ -31,10 +31,12 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitErfDouble()
+        public void LitErfDouble()
         {
-            fixed (double* lg = x) fixed (double* r = y)
-                LitNormDist.Erf(lg, r, N);
+            var xx = x.AsSpan();
+            var yy = y.AsSpan();
+
+            Lit.Erf(ref xx, ref yy);
         }
 
         [Benchmark]
@@ -45,17 +47,20 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitCdfDouble()
+        public void LitCdfDouble()
         {
-            fixed (double* lg = x) fixed (double* r = y)
-                LitNormDist.CDF(0.0, 1.0, lg, r, N);
+            var xx = x.AsSpan();
+            var yy = y.AsSpan();
+
+            Lit.CDF(0.0, 1.0, ref xx, ref yy);
         }
 
         [Benchmark]
-        public unsafe void LitCdfFloat()
+        public void LitCdfFloat()
         {
-            fixed (float* lg = xf) fixed (float* r = yf)
-                LitNormDist.CDF(0.0f, 1.0f, lg, r, N);
+            var xx = xf.AsSpan();
+            var yy = yf.AsSpan();
+            Lit.CDF(0.0f, 1.0f, ref xx, ref yy);
         }
 
         [Benchmark]

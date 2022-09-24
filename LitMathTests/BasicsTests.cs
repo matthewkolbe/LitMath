@@ -8,12 +8,12 @@ namespace LitMathTests
     class BasicsTests
     {
         [Test]
-        public unsafe void DotProductDouble()
+        public void DotProductDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var b = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
@@ -22,7 +22,7 @@ namespace LitMathTests
                     b[i] = 1+i;
                 }
 
-                var result = LitBasics.Dot(a, b, n);
+                var result = Lit.Dot(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, n*(n+1)*0.5, 1e-8);
@@ -30,7 +30,7 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void DotProductConcurrentDouble()
+        public void DotProductConcurrentDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
@@ -44,7 +44,7 @@ namespace LitMathTests
                     b[i] = Vector256.Create((double)(1 + i));
                 }
 
-                var result = LitBasics.Dot(a, b);
+                var result = Lit.Dot(a, b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result.GetElement(2), n * (n + 1) * 0.5, 1e-8);
@@ -52,12 +52,12 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void DotProductFloat()
+        public void DotProductFloat()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc float[n];
-                var b = stackalloc float[n];
+                Span<float> a = stackalloc float[n];
+                Span<float> b = stackalloc float[n];
                 var r = new Random(10);
 
                 for (int i = 0; i < n; ++i)
@@ -66,7 +66,7 @@ namespace LitMathTests
                     b[i] = 1 + i;
                 }
 
-                var result = LitBasics.Dot(a, b, n);
+                var result = Lit.Dot(ref a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, n * (n + 1) * 0.5f, 1e-8);
@@ -74,13 +74,13 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ElementwiseMultiplyDouble()
+        public void ElementwiseMultiplyDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var b = stackalloc double[n];
-                var r = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
+                Span<double> r = stackalloc double[n];
 
                 for (int i = 0; i < n; ++i)
                 {
@@ -88,7 +88,7 @@ namespace LitMathTests
                     b[i] = 1 + i;
                 }
 
-                LitBasics.Multiply(a, b, r, n);
+                Lit.Multiply(ref a, ref b, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i + 1, 1e-8);
@@ -96,13 +96,13 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void SubtractDouble()
+        public void SubtractDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var b = stackalloc double[n];
-                var r = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
+                Span<double> r = stackalloc double[n];
 
                 for (int i = 0; i < n; ++i)
                 {
@@ -110,7 +110,7 @@ namespace LitMathTests
                     b[i] = 1.0;
                 }
 
-                LitBasics.Subtract(a, b, r, n);
+                Lit.Subtract(ref a, ref b, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i, 1e-8);
@@ -118,17 +118,17 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void SubtractConstDouble()
+        public void SubtractConstDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var r = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> r = stackalloc double[n];
 
                 for (int i = 0; i < n; ++i)
                     a[i] = 1 + i;
 
-                LitBasics.Subtract(a, 1.0, r, n);
+                Lit.Subtract(ref a[0], 1.0, ref r[0], n);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i, 1e-8);
@@ -136,18 +136,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ConstMultiplyFloat()
+        public void ConstMultiplyFloat()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc float[n];
-                var r = stackalloc float[n];
+                Span<float> a = stackalloc float[n];
+                Span<float> r = stackalloc float[n];
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
 
-                LitBasics.Multiply(a, 2f, r, n);
+                Lit.Multiply(ref a, 2f, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2f*i, 1e-8f);
@@ -155,18 +155,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ConstMultiplyDouble()
+        public void ConstMultiplyDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var r = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> r = stackalloc double[n];
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
 
-                LitBasics.Multiply(a, 2, r, n);
+                Lit.Multiply(ref a, 2, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i, 1e-8);
@@ -174,18 +174,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ConstFmaDouble()
+        public void ConstFmaDouble()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc double[n];
-                var r = stackalloc double[n];
+                Span<double> a = stackalloc double[n];
+                Span<double> r = stackalloc double[n];
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
 
-                LitBasics.FusedMultiplyAdd(a, 2, 1, r, n);
+                Lit.FusedMultiplyAdd(ref a, 2, 1, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i + 1, 1e-8);
@@ -193,18 +193,18 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void ConstFmaFloat()
+        public void ConstFmaFloat()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
             {
-                var a = stackalloc float[n];
-                var r = stackalloc float[n];
+                Span<float> a = stackalloc float[n];
+                Span<float> r = stackalloc float[n];
 
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
 
-                LitBasics.FusedMultiplyAdd(a, 2, 1, r, n);
+                Lit.FusedMultiplyAdd(ref a, 2, 1, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i + 1, 1e-8);

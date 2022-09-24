@@ -32,24 +32,26 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitSinDouble()
+        public void LitSinDouble()
         {
-            fixed (double* lg = x) fixed (double* r = results)
-                LitTrig.Sin(lg, r, N);
+            var xx = x.AsSpan();
+            var rr = results.AsSpan();
+            Lit.Sin(ref xx, ref rr);
         }
 
         [Benchmark]
         public void NaiveCosDouble()
         {
             for (int i = 0; i < N; i++)
-                temp = Math.Cos(x[i]);
+                temp = System.Math.Cos(x[i]);
         }
 
         [Benchmark]
-        public unsafe void LitCosDouble()
+        public void LitCosDouble()
         {
-            fixed (double* lg = x) fixed (double* r = results)
-                LitTrig.Cos(lg, r, N);
+            var xx = x.AsSpan();
+            var rr = results.AsSpan();
+            Lit.Cos(ref xx, ref rr);
 
         }
 
@@ -57,30 +59,30 @@ namespace LitMathBenchmarks
         public void NaiveTanDouble()
         {
             for (int i = 0; i < N; i++)
-                temp = Math.Tan(x[i]);
+                temp = System.Math.Tan(x[i]);
         }
 
         [Benchmark]
-        public unsafe void LitTanDouble()
+        public void LitTanDouble()
         {
-            fixed (double* lg = x) fixed (double* r = results)
-                LitTrig.Tan(lg, r, N);
-
+            var xx = x.AsSpan();
+            var rr = results.AsSpan();
+            Lit.Tan(ref xx, ref rr);
         }
 
         [Benchmark]
         public void NaiveATanDouble()
         {
             for (int i = 0; i < N; i++)
-                temp = Math.Atan(x[i]);
+                temp = System.Math.Atan(x[i]);
         }
 
         [Benchmark]
-        public unsafe void LitATanDouble()
+        public void LitATanDouble()
         {
-            fixed (double* lg = x) fixed (double* r = results)
-                LitTrig.ATan(lg, r, N);
-
+            var xx = x.AsSpan();
+            var rr = results.AsSpan();
+            Lit.ATan(ref xx, ref rr);
         }
     }
 }

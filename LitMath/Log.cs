@@ -1,13 +1,14 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
 
-    public static class LitLog
+    public static partial class Lit
     {
         /// <summary>
         /// Calculates 4 log base 2's on doubles via 256-bit SIMD intrinsics. 
@@ -20,11 +21,11 @@ namespace LitMath
             // Checks if x is lower than zero. Stores the information for later to modify the result. If, for
             // example, only x[1] < 0, then end[1] will be NaN, and the rest zero. We add this to the result at
             // the end, which will force y[1] to be NaN.
-            var end = Avx.CompareLessThanOrEqual(x, LitConstants.Double.Log.ZERO);
+            var end = Avx.CompareLessThanOrEqual(x, Lit.Double.Log.ZERO);
 
             // Handles positive infinity as a special case where log2(infinity)=infinity. Uses the same trick at
             // the end.
-            end = Avx.Add(Avx.And(Avx.CompareEqual(x, LitConstants.Double.Log.POSITIVE_INFINITY), LitConstants.Double.Log.POSITIVE_INFINITY), end);
+            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Lit.Double.Log.POSITIVE_INFINITY), Lit.Double.Log.POSITIVE_INFINITY), end);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
@@ -35,18 +36,18 @@ namespace LitMath
             // becomes log(d)+m, where d is in [1, 2]. Then it uses a series approximation of log to approximate 
             // the value in [1, 2]
 
-            var xl = Vector256.AsInt64(Avx.Max(x, LitConstants.Double.Log.ZERO));
-            var mantissa = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 52), LitConstants.Long.ONE_THOUSAND_TWENTY_THREE);
+            var xl = Vector256.AsInt64(Avx.Max(x, Lit.Double.Log.ZERO));
+            var mantissa = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 52), Lit.Long.ONE_THOUSAND_TWENTY_THREE);
 
-            LitUtilities.ConvertLongToDouble(ref mantissa, ref y);
+            Util.ConvertLongToDouble(ref mantissa, ref y);
 
-            xl = Avx2.Or(Avx2.And(xl, LitConstants.Long.DECIMAL_MASK_FOR_DOUBLE), LitConstants.Long.EXPONENT_MASK_FOR_DOUBLE);
+            xl = Avx2.Or(Avx2.And(xl, Lit.Long.DECIMAL_MASK_FOR_DOUBLE), Lit.Long.EXPONENT_MASK_FOR_DOUBLE);
 
-            var d = Avx.Multiply(Avx.Or(Vector256.AsDouble(xl), LitConstants.Double.Log.ONE), LitConstants.Double.Log.TWO_THIRDS);
+            var d = Avx.Multiply(Avx.Or(Vector256.AsDouble(xl), Lit.Double.Log.ONE), Lit.Double.Log.TWO_THIRDS);
 
             LogApprox(ref d, ref d);
 
-            y = Avx.Add(Fma.MultiplyAdd(d, LitConstants.Double.Log.LOG2EF, LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
+            y = Avx.Add(Fma.MultiplyAdd(d, Lit.Double.Log.LOG2EF, Lit.Double.Log.LOG_ONE_POINT_FIVE), y);
             //y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Double.Log.LOG2EF), LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
@@ -58,24 +59,24 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log2(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var end = Avx.CompareLessThanOrEqual(x, LitConstants.Float.Log.ZERO);
-            end = Avx.Add(Avx.And(Avx.CompareEqual(x, LitConstants.Float.Log.POSITIVE_INFINITY), LitConstants.Float.Log.POSITIVE_INFINITY), end);
+            var end = Avx.CompareLessThanOrEqual(x, Lit.Float.Log.ZERO);
+            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Lit.Float.Log.POSITIVE_INFINITY), Lit.Float.Log.POSITIVE_INFINITY), end);
             end = Avx.Add(Avx.CompareNotEqual(x, x), end);
 
-            var xl = Vector256.AsInt32(Avx.Max(x, LitConstants.Float.Log.ZERO));
-            var m = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 23), LitConstants.Int.ONE_HUNDRED_TWENTY_SEVEN);
+            var xl = Vector256.AsInt32(Avx.Max(x, Lit.Float.Log.ZERO));
+            var m = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 23), Lit.Int.ONE_HUNDRED_TWENTY_SEVEN);
 
             y = Avx.ConvertToVector256Single(m);
 
-            xl = Avx2.Or(Avx2.And(xl, LitConstants.Int.DECIMAL_MASK_FOR_FLOAT), LitConstants.Int.EXPONENT_MASK_FOR_FLOAT);
+            xl = Avx2.Or(Avx2.And(xl, Lit.Int.DECIMAL_MASK_FOR_FLOAT), Lit.Int.EXPONENT_MASK_FOR_FLOAT);
 
-            var d = Avx.Multiply(Avx.Or(Vector256.AsSingle(xl), LitConstants.Float.Log.ONE), LitConstants.Float.Log.TWO_THIRDS);
+            var d = Avx.Multiply(Avx.Or(Vector256.AsSingle(xl), Lit.Float.Log.ONE), Lit.Float.Log.TWO_THIRDS);
 
             LogApprox(ref d, ref d);
 
 
             //y = Avx.Add(Fma.MultiplyAdd(d, LitConstants.Float.Log.LOG2EF, LitConstants.Float.Log.LOG_ONE_POINT_FIVE), y);
-            y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Float.Log.LOG2EF), LitConstants.Float.Log.LOG_ONE_POINT_FIVE), y);
+            y = Avx.Add(Avx.Add(Avx.Multiply(d, Lit.Float.Log.LOG2EF), Lit.Float.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
 
@@ -86,18 +87,18 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogApprox(ref Vector256<double> x, ref Vector256<double> y)
         {
-            y = Avx.Divide(Avx.Subtract(x, LitConstants.Double.Log.ONE), Avx.Add(x, LitConstants.Double.Log.ONE));
+            y = Avx.Divide(Avx.Subtract(x, Lit.Double.Log.ONE), Avx.Add(x, Lit.Double.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Fma.MultiplyAdd(ysq, LitConstants.Double.Log.ONE_THIRTEENTH, LitConstants.Double.Log.ONE_ELEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_NINTH);
-            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_SEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_FIFTH);
-            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE_THIRD);
-            rx = Fma.MultiplyAdd(ysq, rx, LitConstants.Double.Log.ONE);
+            var rx = Fma.MultiplyAdd(ysq, Lit.Double.Log.ONE_THIRTEENTH, Lit.Double.Log.ONE_ELEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_NINTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_SEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_FIFTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_THIRD);
+            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE);
 
             rx = Avx.Multiply(y, rx);
-            y = Avx.Multiply(rx, LitConstants.Double.Log.TWO);
+            y = Avx.Multiply(rx, Lit.Double.Log.TWO);
         }
 
 
@@ -107,21 +108,21 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LogApprox(ref Vector256<float> x, ref Vector256<float> y)
         {
-            y = Avx.Divide(Avx.Subtract(x, LitConstants.Float.Log.ONE), Avx.Add(x, LitConstants.Float.Log.ONE));
+            y = Avx.Divide(Avx.Subtract(x, Lit.Float.Log.ONE), Avx.Add(x, Lit.Float.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Avx.Multiply(ysq, LitConstants.Float.Log.ONE_ELEVENTH);
-            rx = Avx.Add(rx, LitConstants.Float.Log.ONE_NINTH);
+            var rx = Avx.Multiply(ysq, Lit.Float.Log.ONE_ELEVENTH);
+            rx = Avx.Add(rx, Lit.Float.Log.ONE_NINTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Float.Log.ONE_SEVENTH);
+            rx = Avx.Add(rx, Lit.Float.Log.ONE_SEVENTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Float.Log.ONE_FIFTH);
+            rx = Avx.Add(rx, Lit.Float.Log.ONE_FIFTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Float.Log.ONE_THIRD);
+            rx = Avx.Add(rx, Lit.Float.Log.ONE_THIRD);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, LitConstants.Float.Log.ONE);
+            rx = Avx.Add(rx, Lit.Float.Log.ONE);
             rx = Avx.Multiply(y, rx);
-            y = Avx.Multiply(rx, LitConstants.Float.Log.TWO);
+            y = Avx.Multiply(rx, Lit.Float.Log.TWO);
         }
 
 
@@ -132,7 +133,7 @@ namespace LitMath
         public static void Ln(ref Vector256<double> x, ref Vector256<double> y)
         {
             Log2(ref x, ref y);
-            y = Avx.Multiply(LitConstants.Double.Log.LN2, y);
+            y = Avx.Multiply(Lit.Double.Log.LN2, y);
         }
 
         /// <summary>
@@ -143,7 +144,7 @@ namespace LitMath
         {
             var y = Vector256.Create(0.0);
             Log2(ref x, ref y);
-            return Avx.Multiply(LitConstants.Double.Log.LN2, y);
+            return Avx.Multiply(Lit.Double.Log.LN2, y);
         }
 
         /// <summary>
@@ -153,7 +154,7 @@ namespace LitMath
         public static Vector256<double> Ln(Vector256<double> x)
         {
             Log2(ref x, ref x);
-            return Avx.Multiply(LitConstants.Double.Log.LN2, x);
+            return Avx.Multiply(Lit.Double.Log.LN2, x);
         }
 
         /// <summary>
@@ -163,7 +164,7 @@ namespace LitMath
         public static void Ln(ref Vector256<float> x, ref Vector256<float> y)
         {
             Log2(ref x, ref y);
-            y = Avx.Multiply(LitConstants.Float.Log.LN2, y);
+            y = Avx.Multiply(Lit.Float.Log.LN2, y);
         }
 
         /// <summary>
@@ -174,7 +175,7 @@ namespace LitMath
         {
             var y = Vector256.Create(0.0f);
             Log2(ref x, ref y);
-            return Avx.Multiply(LitConstants.Float.Log.LN2, y);
+            return Avx.Multiply(Lit.Float.Log.LN2, y);
         }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace LitMath
         public static Vector256<float> Ln(Vector256<float> x)
         {
             Log2(ref x, ref x);
-            return Avx.Multiply(LitConstants.Float.Log.LN2, x);
+            return Avx.Multiply(Lit.Float.Log.LN2, x);
         }
 
 
@@ -193,29 +194,29 @@ namespace LitMath
         /// </summary>
         /// <param name="xx"></param>
         /// <param name="yy"></param>
+        /// <param name="index">The offset index to calculate on</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Ln(double* xx, double* yy)
+        public static void Ln(ref double xx, ref double yy, int index)
         {
-            var x = Avx.LoadVector256(xx);
+            var x = Util.LoadV256(ref xx, index);
             Ln(ref x, ref x);
-            Avx.Store(yy, x);
+            Util.StoreV256(ref yy, index, x);
         }
-
 
         /// <summary>
-        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
+        /// Calculates the natural log of 8 floats via 256-bit SIMD intrinsics. 
         /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        /// <param name="index">The offset index to calculate on</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Ln(ref Span<double> x, ref Span<double> y)
+        public static void Ln(ref float xx, ref float yy, int index)
         {
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Ln(xx, yy, x.Length);
-            }
+            var x = Util.LoadV256(ref xx, index);
+            Ln(ref x, ref x);
+            Util.StoreV256(ref yy, index, x);
         }
+
 
         /// <summary>
         /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
@@ -225,14 +226,8 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<double> Ln(ref Span<double> x)
         {
-            var y = GC.AllocateUninitializedArray<double>(x.Length);
-
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Ln(xx, yy, x.Length);
-            }
-
+            var y = new Span<double>(GC.AllocateUninitializedArray<double>(x.Length));
+            Ln(ref x, ref y);
             return y;
         }
 
@@ -244,30 +239,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<double> Ln(Span<double> x)
         {
-            var y = GC.AllocateUninitializedArray<double>(x.Length);
-
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    Ln(xx, yy, x.Length);
-            }
-
-            return y;
-        }
-
-        /// <summary>
-        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Ln(ref Span<float> x, ref Span<float> y, int n)
-        {
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Ln(xx, yy, n);
-            }
+            return Ln(ref x);
         }
 
         /// <summary>
@@ -278,14 +250,8 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<float> Ln(ref Span<float> x)
         {
-            var y = GC.AllocateUninitializedArray<float>(x.Length);
-
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Ln(xx, yy, x.Length);
-            }
-
+            var y = new Span<float>(GC.AllocateUninitializedArray<float>(x.Length));
+            Ln(ref x, ref y);
             return y;
         }
 
@@ -297,15 +263,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<float> Ln(Span<float> x)
         {
-            var y = GC.AllocateUninitializedArray<float>(x.Length);
-
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    Ln(xx, yy, x.Length);
-            }
-
-            return y;
+            return Ln(ref x);
         }
 
         /// <summary>
@@ -316,20 +274,24 @@ namespace LitMath
         /// <param name="n">The number of xx values to take an natural log of</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Ln(double* xx, double* yy, int n)
+        public static void Ln(ref Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
+            var n = xx.Length;
+            ref var x = ref MemoryMarshal.GetReference(xx);
+            ref var y = ref MemoryMarshal.GetReference(yy);
 
-            if(n< VSZ)
+            if (n< VSZ)
             {
-                var tmpx = stackalloc double[VSZ];
+                Span<double> tmp = stackalloc double[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
 
-                Ln(tmpx, tmpx);
+                Ln(ref tmpx, ref tmpx, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
             }
 
             int i = 0;
@@ -337,43 +299,28 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
 
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
             }
         }
-
-
-        /// <summary>
-        /// Calculates 4 natural logs on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="xx">A pointer to the first argument</param>
-        /// <param name="yy">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Ln(float* xx, float* yy)
-        {
-            var x = Avx.LoadVector256(xx);
-            Ln(ref x, ref x);
-            Avx.Store(yy, x);
-        }
-
 
         /// <summary>
         /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
@@ -383,20 +330,24 @@ namespace LitMath
         /// <param name="n">The number of xx values to take an natural log of</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Ln(float* xx, float* yy, int n)
+        public static void Ln(ref Span<float> xx, ref Span<float> yy)
         {
             const int VSZ = 8;
+            var n = xx.Length;
+            ref var x = ref MemoryMarshal.GetReference(xx);
+            ref var y = ref MemoryMarshal.GetReference(yy);
 
             if (n < VSZ)
             {
-                var tmpx = stackalloc float[VSZ];
+                Span<float> tmp = stackalloc float[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
 
-                Ln(tmpx, tmpx);
+                Ln(ref tmpx, ref tmpx, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
             }
 
             int i = 0;
@@ -404,25 +355,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 8 values in a standard loop
             for (; i < (n - 7); i += VSZ)
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
 
             // Cleans up any excess individual values (if n%8 != 0)
             if (i != n)
             {
                 i = n - 8;
-                Ln(xx + i, yy + i);
+                Ln(ref x, ref y, i);
             }
         }
     }

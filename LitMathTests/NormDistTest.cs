@@ -9,32 +9,30 @@ namespace LitMathTests
     public class NormDistTest
     {
         [Test]
-        public unsafe void ErfDoubleAccuracy()
+        public void ErfDoubleAccuracy()
         {
             var n = 1000;
-            var x = new double[n];
-            var y = new double[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
             var r = new Random(10);
 
             for (int i = 0; i < n; i++)
                 x[i] = 30.0*(r.NextDouble()-0.5);
 
-
-            fixed (double* xx = x) fixed (double* yy = y) 
-                LitNormDist.Erf(xx, yy, n);
+            Lit.Erf(ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], SpecialFunctions.Erf(x[i]), 1e-13);
         }
 
         [Test]
-        public unsafe void CdfDoubleAccuracy()
+        public void CdfDoubleAccuracy()
         {
             var n = 1000;
-            var x = new double[n];
-            var y = new double[n];
-            var m = new double[n];
-            var s = new double[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
+            Span<double> m = new double[n];
+            Span<double> s = new double[n];
 
             for (int i = 0; i < n; i++)
             {
@@ -43,19 +41,18 @@ namespace LitMathTests
                 s[i] = (i % 10) + 0.5;
             }
 
-            fixed (double* xx = x) fixed (double* yy = y) fixed (double* mm = m) fixed (double* ss = s)
-                LitNormDist.CDF(mm, ss, xx, yy, n);
+            Lit.CDF(ref m, ref s, ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-13);
         }
 
         [Test]
-        public unsafe void CdfDoubleStandardAccuracyBig()
+        public void CdfDoubleStandardAccuracyBig()
         {
             var n = 1000;
-            var x = new double[n];
-            var y = new double[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
             var really = new double[n];
             var m = 0.0;
             var s = 1.0;
@@ -66,19 +63,18 @@ namespace LitMathTests
                 really[i] = Normal.CDF(m, s, x[i]);
             }
 
-            fixed (double* xx = x) fixed (double* yy = y)
-                LitNormDist.CDF(m, s, xx, yy, n);
+            Lit.CDF(m, s, ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], really[i], 1e-9);
         }
 
         [Test]
-        public unsafe void CdfDoubleStandardAccuracy()
+        public void CdfDoubleStandardAccuracy()
         {
             var n = 4;
-            var x = new double[n];
-            var y = new double[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
             var really = new double[n];
             var m = 0.0;
             var s = 1.0;
@@ -92,19 +88,18 @@ namespace LitMathTests
             really[2] = Normal.CDF(m, s, x[2]);
             really[3] = Normal.CDF(m, s, x[3]);
 
-            fixed (double* xx = x) fixed (double* yy = y)
-                LitNormDist.CDF(m, s, xx, yy, n);
+            Lit.CDF(m, s, ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], really[i], 1e-13);
         }
 
         [Test]
-        public unsafe void CdfDoubleInfNansAreRight()
+        public void CdfDoubleInfNansAreRight()
         {
             var n = 3;
-            var x = new double[n];
-            var y = new double[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
             var m = 0.0;
             var s = 1.0;
 
@@ -112,9 +107,7 @@ namespace LitMathTests
             x[1] = double.PositiveInfinity;
             x[2] = double.NegativeInfinity;
             
-
-            fixed (double* xx = x) fixed (double* yy = y) 
-                LitNormDist.CDF(m, s, xx, yy, n);
+            Lit.CDF(m, s, ref x, ref y);
 
             Assert.True(double.IsNaN(y[0]));
             Assert.AreEqual(y[1], 1.0, 1e-10);
@@ -122,13 +115,13 @@ namespace LitMathTests
         }
 
         [Test]
-        public unsafe void CdfFloatAccuracy()
+        public void CdfFloatAccuracy()
         {
             var n = 1000;
-            var x = new float[n];
-            var y = new float[n];
-            var m = new float[n];
-            var s = new float[n];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
+            Span<double> m = new double[n];
+            Span<double> s = new double[n];
 
             for (int i = 0; i < n; i++)
             {
@@ -137,19 +130,18 @@ namespace LitMathTests
                 s[i] = (i % 10) + 0.5f;
             }
 
-            fixed (float* xx = x) fixed (float* yy = y) fixed (float* mm = m) fixed (float* ss = s)
-                LitNormDist.CDF(mm, ss, xx, yy, n);
+            Lit.CDF(ref m, ref s, ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 2e-7);
         }
 
         [Test]
-        public unsafe void CdffloatNonStandardAccuracy()
+        public void CdffloatNonStandardAccuracy()
         {
             var n = 1000;
-            var x = new float[n];
-            var y = new float[n];
+            Span<float> x = new float[n];
+            Span<float> y = new float[n];
             var realy = new float[n];
             var m = 0.2f;
             var s = 1.03f;
@@ -160,19 +152,18 @@ namespace LitMathTests
                 realy[i] = (float)Normal.CDF((double)m, (double)s, (double)x[i]);
             }
 
-            fixed (float* xx = x) fixed (float* yy = y)
-                LitNormDist.CDF(m, s, xx, yy, n);
+            Lit.CDF(m, s, ref x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], realy[i], 1e-5);
         }
 
         [Test]
-        public unsafe void CdfFloatInfNansAreRight()
+        public void CdfFloatInfNansAreRight()
         {
             var n = 3;
-            var x = new float[n];
-            var y = new float[n];
+            Span<float> x = new float[n];
+            Span<float> y = new float[n];
             var m = 0.0f;
             var s = 1.0f;
 
@@ -180,9 +171,7 @@ namespace LitMathTests
             x[1] = float.PositiveInfinity;
             x[2] = float.NegativeInfinity;
 
-
-            fixed (float* xx = x) fixed (float* yy = y)
-                LitNormDist.CDF(m, s, xx, yy, n);
+            Lit.CDF(m, s, ref x, ref y);
 
             Assert.True(float.IsNaN(y[0]));
             Assert.AreEqual(y[1], 1.0, 1e-10);

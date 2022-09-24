@@ -1,86 +1,14 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
-    public static class LitNormDist
+    public static partial class Lit
     {
-
-        /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="mean">The distribution's means</param>
-        /// <param name="sigma">The distribution's sigmas</param>
-        /// <param name="x">A Span to the first sample value</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CDF(ref Span<double> mean, ref Span<double> sigma, ref Span<double> x, ref Span<double> y)
-        {
-            unsafe
-            {
-                fixed(double* m = mean) fixed(double* s = sigma) fixed (double* xx = x) fixed (double* yy = y)
-                    CDF(m, s, xx, yy, x.Length);
-            }
-        }
-
-
-        /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
-        /// </summary>
-        /// <param name="mean">The distribution's means</param>
-        /// <param name="sigma">The distribution's sigmas</param>
-        /// <param name="x">A Span to the first sample value</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CDF(ref Span<float> mean, ref Span<float> sigma, ref Span<float> x, ref Span<float> y)
-        {
-            unsafe
-            {
-                fixed (float* m = mean) fixed (float* s = sigma) fixed (float* xx = x) fixed (float* yy = y)
-                    CDF(m, s, xx, yy, x.Length);
-            }
-        }
-
-
-        /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. . 
-        /// </summary>
-        /// <param name="mean">The distribution's mean</param>
-        /// <param name="sigma">The distribution's sigma</param>
-        /// <param name="x">A Span to the first sample value</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CDF(double mean, double sigma, ref Span<double> x, ref Span<double> y)
-        {
-            unsafe
-            {
-                fixed (double* xx = x) fixed (double* yy = y)
-                    CDF(mean, sigma, xx, yy, x.Length);
-            }
-        }
-
-
-        /// <summary>
-        /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="mean">The distribution's mean</param>
-        /// <param name="sigma">The distribution's sigma</param>
-        /// <param name="x">A Span to the first sample value</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CDF(float mean, float sigma, ref Span<float> x, ref Span<float> y)
-        {
-            unsafe
-            {
-                fixed (float* xx = x) fixed (float* yy = y)
-                    CDF(mean, sigma, xx, yy, x.Length);
-            }
-        }
-
-
         /// <summary>
         /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
         /// </summary>
@@ -90,77 +18,77 @@ namespace LitMath
         /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void CDF(double* mean, double* sigma, double*x, double* y, int n)
+        public static void CDF(ref Span<double> mean, ref Span<double> sigma, ref Span<double> x, ref Span<double> y)
         {
             const int VSZ = 4;
+            ref var m0 = ref MemoryMarshal.GetReference(mean);
+            ref var s0 = ref MemoryMarshal.GetReference(sigma);
+            ref var x0 = ref MemoryMarshal.GetReference(x);
+            ref var y0 = ref MemoryMarshal.GetReference(y);
+
+            var n = x.Length;
+
+            if(n < VSZ)
+            {
+                Span<double> tmpx = stackalloc double[VSZ];
+                ref var tmpx0 = ref MemoryMarshal.GetReference(tmpx);
+                Span<double> tmpm = stackalloc double[VSZ];
+                ref var tmpm0 = ref MemoryMarshal.GetReference(tmpm);
+                Span<double> tmps = stackalloc double[VSZ];
+                ref var tmps0 = ref MemoryMarshal.GetReference(tmps);
+
+
+                for (int j = 0; j < n; j++)
+                {
+                    Unsafe.Add(ref tmpx0, j) = Unsafe.Add(ref x0, j);
+                    Unsafe.Add(ref tmpm0, j) = Unsafe.Add(ref m0, j);
+                    Unsafe.Add(ref tmps0, j) = Unsafe.Add(ref s0, j);
+                }
+
+                CDF(ref m0, ref s0, ref x0, ref s0, 0);
+
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx0, j);
+
+                return;
+            }
 
             int i = 0;
 
             while (i < (n - 15))
             {
-                var m = Avx.LoadVector256(mean + i);
-                var s = Avx.LoadVector256(sigma + i);
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
                 i += VSZ;
-
-                m = Avx.LoadVector256(mean + i);
-                s = Avx.LoadVector256(sigma + i);
-                xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
                 i += VSZ;
-
-                m = Avx.LoadVector256(mean + i);
-                s = Avx.LoadVector256(sigma + i);
-                xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
                 i += VSZ;
-
-                m = Avx.LoadVector256(mean + i);
-                s = Avx.LoadVector256(sigma + i);
-                xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
                 i += VSZ;
             }
 
-            for (; i < (n - 3); i+= 4)
+            for (; i < (n - 3);)
             {
-                var m = Avx.LoadVector256(mean + i);
-                var s = Avx.LoadVector256(sigma + i);
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
+                i += VSZ;
             }
 
             if (i != n)
             {
-                var nn = i;
-                var tmpm = stackalloc double[4];
-                var tmps = stackalloc double[4];
-                var tmpx = stackalloc double[4];
-
-                for (int j = 0; j < (n - i); ++j)
-                {
-                    tmpm[j] = mean[j + i];
-                    tmps[j] = sigma[j + i];
-                    tmpx[j] = x[j + i];
-                }
-
-                var m = Avx.LoadVector256(tmpm);
-                var s = Avx.LoadVector256(tmps);
-                var xx = Avx.LoadVector256(tmpx);
-
-                CDF(ref m, ref s, ref xx, ref s);
-
-                Avx.Store(tmpm, s);
-
-                for (; i < n; ++i)
-                    y[i] = tmpm[i-nn];
+                i = n - VSZ;
+                CDF(ref m0, ref s0, ref x0, ref y0, i);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CDF(ref double mean, ref double sigma, ref double x, ref double y, int offset)
+        {
+            var m = Util.LoadV256(ref mean, offset);
+            var s = Util.LoadV256(ref sigma, offset);
+            var xx = Util.LoadV256(ref x, offset);
+            var yy = Util.LoadV256(ref y, offset);
+            CDF(ref m, ref s, ref xx, ref yy);
+            Util.StoreV256(ref y, offset, yy);
         }
 
 
@@ -173,72 +101,80 @@ namespace LitMath
         /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void CDF(float* mean, float* sigma, float* x, float* y, int n)
+        public static void CDF(ref Span<float> mean, ref Span<float> sigma, ref Span<float> x, ref Span<float> y)
         {
-            int i = 0;
+            const int VSZ = 8;
+            ref var m0 = ref MemoryMarshal.GetReference(mean);
+            ref var s0 = ref MemoryMarshal.GetReference(sigma);
+            ref var x0 = ref MemoryMarshal.GetReference(x);
+            ref var y0 = ref MemoryMarshal.GetReference(y);
+            Vector256<double> m, s, xx;
 
-            for (; i < (n - 31); i += 32)
+            var n = x.Length;
+
+            if (n < VSZ)
             {
-                var m = Avx.LoadVector256(mean + i);
-                var s = Avx.LoadVector256(sigma + i);
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                Span<float> tmpx = stackalloc float[VSZ];
+                ref var tmpx0 = ref MemoryMarshal.GetReference(tmpx);
+                Span<float> tmpm = stackalloc float[VSZ];
+                ref var tmpm0 = ref MemoryMarshal.GetReference(tmpm);
+                Span<float> tmps = stackalloc float[VSZ];
+                ref var tmps0 = ref MemoryMarshal.GetReference(tmps);
 
-                m = Avx.LoadVector256(mean + i + 8);
-                s = Avx.LoadVector256(sigma + i + 8);
-                xx = Avx.LoadVector256(x + i + 8);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 8, s);
 
-                m = Avx.LoadVector256(mean + i + 16);
-                s = Avx.LoadVector256(sigma + i + 16);
-                xx = Avx.LoadVector256(x + i + 16);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 16, s);
+                for (int j = 0; j < n; j++)
+                {
+                    Unsafe.Add(ref tmpx0, j) = Unsafe.Add(ref x0, j);
+                    Unsafe.Add(ref tmpm0, j) = Unsafe.Add(ref m0, j);
+                    Unsafe.Add(ref tmps0, j) = Unsafe.Add(ref s0, j);
+                }
 
-                m = Avx.LoadVector256(mean + i + 24);
-                s = Avx.LoadVector256(sigma + i + 24);
-                xx = Avx.LoadVector256(x + i + 24);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i + 24, s);
+                CDF(ref m0, ref s0, ref x0, ref s0, 0);
+
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx0, j);
+
+                return;
             }
 
-            for (; i < (n - 7); i += 8)
+            int i = 0;
+
+            while (i < (n - 15))
             {
-                var m = Avx.LoadVector256(mean + i);
-                var s = Avx.LoadVector256(sigma + i);
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref s);
-                Avx.Store(y + i, s);
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
+                i += VSZ;
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
+                i += VSZ;
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
+                i += VSZ;
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
+                i += VSZ;
+            }
+
+            for (; i < (n - 3);)
+            {
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
+                i += VSZ;
             }
 
             if (i != n)
             {
-                var nn = i;
-                var tmpm = stackalloc float[8];
-                var tmps = stackalloc float[8];
-                var tmpx = stackalloc float[8];
-
-                for (int j = 0; j < (n - i); ++j)
-                {
-                    tmpm[j] = mean[j + i];
-                    tmps[j] = sigma[j + i];
-                    tmpx[j] = x[j + i];
-                }
-
-                var m = Avx.LoadVector256(tmpm);
-                var s = Avx.LoadVector256(tmps);
-                var xx = Avx.LoadVector256(tmpx);
-
-                CDF(ref m, ref s, ref xx, ref s);
-
-                Avx.Store(tmpm, s);
-
-                for (; i < n; ++i)
-                    y[i] = tmpm[i - nn];
+                i = n - VSZ;
+                CDF(ref m0, ref s0, ref x0, ref s0, i);
             }
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CDF(ref float mean, ref float sigma, ref float x, ref float y, int offset)
+        {
+            var m = Util.LoadV256(ref mean, offset);
+            var s = Util.LoadV256(ref sigma, offset);
+            var xx = Util.LoadV256(ref x, offset);
+            CDF(ref m, ref s, ref xx, ref s);
+            Util.StoreV256(ref y, offset, s);
+        }
+
 
 
         /// <summary>
@@ -250,55 +186,71 @@ namespace LitMath
         /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void CDF(double mean, double sigma, double* x, double* y, int n)
+        public static void CDF(double mean, double sigma, ref Span<double> x, ref Span<double> y)
         {
+            const int VSZ = 4;
             int i = 0;
             var m = Vector256.Create(mean);
             var s = Vector256.Create(sigma);
             var o = Vector256<double>.Zero;
+            ref var x0 = ref MemoryMarshal.GetReference(x);
+            ref var y0 = ref MemoryMarshal.GetReference(y);
+            Vector256<double> xx;
+            var n = x.Length;
 
-            for (; i < (n - 15); i += 16)
+            if (n < VSZ)
             {
-                var xx = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i, o);
+                Span<double> tmp = stackalloc double[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
+                for (int j = 0; j < n; j++)
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
 
-                xx = Avx.LoadVector256(x + i + 4);
+                xx = Util.LoadV256(ref tmpx, i);
                 CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 4, o);
+                Util.StoreV256(ref tmpx, i, o);
 
-                xx = Avx.LoadVector256(x + i + 8);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 8, o);
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
 
-                xx = Avx.LoadVector256(x + i + 12);
-                CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i + 12, o);
+                return;
             }
 
-            for (; i < (n - 3); i += 4)
+            for (; i < (n - 15); )
             {
-                var xx = Avx.LoadVector256(x + i);
+                xx = Util.LoadV256(ref x0, i);
                 CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i, o);
+                Util.StoreV256(ref y0, i, o);
+                i += VSZ;
+
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
+                i += VSZ;
+
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
+                i += VSZ;
+
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
+                i += VSZ;
+            }
+
+            for (; i < (n - 3); i += VSZ)
+            {
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
             }
 
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc double[4];
-
-                for (int j = 0; j < 4; ++j)
-                    tmpx[j] = x[j + i];
-
-                var xx = Avx.LoadVector256(tmpx);
-
+                i = n - VSZ;
+                xx = Util.LoadV256(ref x0, i);
                 CDF(ref m, ref s, ref xx, ref o);
-
-                Avx.Store(tmpx, o);
-
-                for (; i < n; ++i)
-                    y[i] = tmpx[i - nn];
+                Util.StoreV256(ref y0, i, o);
             }
         }
 
@@ -311,81 +263,71 @@ namespace LitMath
         /// <param name="x">A pointer to the first sample value</param>
         /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void CDF(float mean, float sigma, float* x, float* y, int n)
+        public static void CDF(float mean, float sigma, ref Span<float> x, ref Span<float> y)
         {
+            const int VSZ = 8;
             int i = 0;
             var m = Vector256.Create(mean);
             var s = Vector256.Create(sigma);
             var o = Vector256<float>.Zero;
+            ref var x0 = ref MemoryMarshal.GetReference(x);
+            ref var y0 = ref MemoryMarshal.GetReference(y);
+            Vector256<float> xx;
+            var n = x.Length;
 
-            const int VSZ = 8;
-
-            if(n < VSZ)
+            if (n < VSZ)
             {
-                var tmpx = stackalloc float[VSZ];
+                Span<float> tmp = stackalloc float[4];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = x[j];
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
 
-                var xx = Avx.LoadVector256(tmpx);
-
-                CDF(ref m, ref s, ref xx, ref xx);
-
-                Avx.Store(tmpx, xx);
+                xx = Util.LoadV256(ref tmpx, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref tmpx, i, o);
 
                 for (int j = 0; j < n; ++j)
-                    y[j] = tmpx[j];
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
 
                 return;
             }
 
-
-            for (; i < (n - 31);)
+            for (; i < (n - 15);)
             {
-                var x1 = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref x1, ref o);
-                Avx.Store(y + i, o);
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
                 i += VSZ;
 
-                var x2 = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref x2, ref o);
-                Avx.Store(y + i, o);
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
                 i += VSZ;
 
-                var x3 = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref x3, ref o);
-                Avx.Store(y + i, o);
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
                 i += VSZ;
 
-                var x4 = Avx.LoadVector256(x + i);
-                CDF(ref m, ref s, ref x4, ref o);
-                Avx.Store(y + i, o);
+                xx = Util.LoadV256(ref x0, i);
+                CDF(ref m, ref s, ref xx, ref o);
+                Util.StoreV256(ref y0, i, o);
                 i += VSZ;
             }
 
-            for (; i < (n-7);)
+            for (; i < (n - 3); i += VSZ)
             {
-                var xx = Avx.LoadVector256(x + i);
+                xx = Util.LoadV256(ref x0, i);
                 CDF(ref m, ref s, ref xx, ref o);
-                Avx.Store(y + i, o);
-                i += VSZ;
+                Util.StoreV256(ref y0, i, o);
             }
 
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc float[8];
-
-                for (int j = i; j < n - i; j++)
-                    tmpx[j - i] = x[j];
-
-                var xx = Avx.LoadVector256(tmpx);
-
+                i = n - VSZ;
+                xx = Util.LoadV256(ref x0, i);
                 CDF(ref m, ref s, ref xx, ref o);
-
-                Avx.Store(tmpx, o);
-
-                for (; i < n; i++)
-                    y[i] = tmpx[i - nn];
+                Util.StoreV256(ref y0, i, o);
             }
         }
 
@@ -393,26 +335,26 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(ref Vector256<double> mean, ref Vector256<double> sigma, ref Vector256<double> x, ref Vector256<double> y)
         {
-            var s = Avx.Multiply(sigma, LitConstants.Double.NormDist.SQRT2);
+            var s = Avx.Multiply(sigma, Lit.Double.NormDist.SQRT2);
             var m = Avx.Subtract(x, mean);
             m = Avx.Divide(m, s);
             Erf(ref m, ref y);
-            y = Avx.Add(y, LitConstants.Double.NormDist.ONE);
-            y = Avx.Multiply(y, LitConstants.Double.NormDist.HALF);
+            y = Avx.Add(y, Lit.Double.NormDist.ONE);
+            y = Avx.Multiply(y, Lit.Double.NormDist.HALF);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(ref Vector256<float> mean, ref Vector256<float> sigma, ref Vector256<float> x, ref Vector256<float> y)
         {
-            var s = Avx.Multiply(sigma, LitConstants.Float.NormDist.SQRT2);
+            var s = Avx.Multiply(sigma, Lit.Float.NormDist.SQRT2);
             var m = Avx.Subtract(x, mean);
             m = Avx.Divide(m, s);
             //LitUtilities.Max(ref m, LitConstants.Float.NormDist.MAX);
             //LitUtilities.Min(ref m, LitConstants.Float.NormDist.MIN);
             Erf(ref m, ref y);
-            y = Avx.Add(y, LitConstants.Float.NormDist.ONE);
-            y = Avx.Multiply(y, LitConstants.Float.NormDist.HALF);
+            y = Avx.Add(y, Lit.Float.NormDist.ONE);
+            y = Avx.Multiply(y, Lit.Float.NormDist.HALF);
         }
 
 
@@ -420,32 +362,32 @@ namespace LitMath
         public static void Erf(ref Vector256<double> x, ref Vector256<double> y)
         {
 
-            var sign = Avx.And(LitConstants.Double.NormDist.NEGATIVE_ZERO, x);
-            sign = Avx.Or(sign, LitConstants.Double.NormDist.ONE);
-            var xx = Avx.AndNot(LitConstants.Double.NormDist.NEGATIVE_ZERO, x);
+            var sign = Avx.And(Lit.Double.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, Lit.Double.NormDist.ONE);
+            var xx = Avx.AndNot(Lit.Double.NormDist.NEGATIVE_ZERO, x);
 
-            var t = Fma.MultiplyAdd(LitConstants.Double.NormDist.ONE_OVER_PI, xx, LitConstants.Double.NormDist.ONE);
-            t = Avx.Divide(LitConstants.Double.NormDist.ONE, t);
+            var t = Fma.MultiplyAdd(Lit.Double.NormDist.ONE_OVER_PI, xx, Lit.Double.NormDist.ONE);
+            t = Avx.Divide(Lit.Double.NormDist.ONE, t);
 
-            var yy = Fma.MultiplyAdd(LitConstants.Double.NormDist.E12, t, LitConstants.Double.NormDist.E11);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E10);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E9);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E8);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E7);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E6);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E5);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E4);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E3);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E2);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Double.NormDist.E1);
+            var yy = Fma.MultiplyAdd(Lit.Double.NormDist.E12, t, Lit.Double.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E1);
             yy = Avx.Multiply(yy, t);
 
-            var exsq = Avx.Multiply(Avx.Multiply(xx, LitConstants.Double.NormDist.NEGONE), xx);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, Lit.Double.NormDist.NEGONE), xx);
 
-            LitExp.Exp(ref exsq, ref exsq);
+            Lit.Exp(ref exsq, ref exsq);
 
             yy = Avx.Multiply(yy, exsq);
-            yy = Avx.Add(LitConstants.Double.NormDist.ONE, yy);
+            yy = Avx.Add(Lit.Double.NormDist.ONE, yy);
             y = Avx.Multiply(yy, sign);
         }
 
@@ -453,61 +395,66 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var sign = Avx.And(LitConstants.Float.NormDist.NEGATIVE_ZERO, x);
-            sign = Avx.Or(sign, LitConstants.Float.NormDist.ONE);
-            var xx = Avx.AndNot(LitConstants.Float.NormDist.NEGATIVE_ZERO, x);
+            var sign = Avx.And(Lit.Float.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, Lit.Float.NormDist.ONE);
+            var xx = Avx.AndNot(Lit.Float.NormDist.NEGATIVE_ZERO, x);
 
-            var t = Fma.MultiplyAdd(LitConstants.Float.NormDist.ONE_OVER_PI, xx, LitConstants.Float.NormDist.ONE);
-            t = Avx.Divide(LitConstants.Float.NormDist.ONE, t);
+            var t = Fma.MultiplyAdd(Lit.Float.NormDist.ONE_OVER_PI, xx, Lit.Float.NormDist.ONE);
+            t = Avx.Divide(Lit.Float.NormDist.ONE, t);
 
-            var yy = Fma.MultiplyAdd(LitConstants.Float.NormDist.E12, t, LitConstants.Float.NormDist.E11);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E10);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E9);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E8);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E7);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E6);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E5);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E4);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E3);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E2);
-            yy = Fma.MultiplyAdd(yy, t, LitConstants.Float.NormDist.E1);
+            var yy = Fma.MultiplyAdd(Lit.Float.NormDist.E12, t, Lit.Float.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E1);
             yy = Avx.Multiply(yy, t);
 
-            var exsq = Avx.Multiply(Avx.Multiply(xx, LitConstants.Float.NormDist.NEGONE), xx);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, Lit.Float.NormDist.NEGONE), xx);
 
-            LitExp.Exp(ref exsq, ref exsq);
+            Lit.Exp(ref exsq, ref exsq);
 
             yy = Avx.Multiply(yy, exsq); 
-            yy = Avx.Add(LitConstants.Float.NormDist.ONE, yy);
+            yy = Avx.Add(Lit.Float.NormDist.ONE, yy);
             y = Avx.Multiply(yy, sign);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Erf(double* xx, double* yy)
+        public static void Erf(ref double xx, ref double yy, int index)
         {
-            var x = Avx.LoadVector256(xx);
+            var x = Util.LoadV256(ref xx, index);
             var y = Vector256<double>.Zero;
             Erf(ref x, ref y);
-            Avx.Store(yy, y);
+            Util.StoreV256(ref yy, index, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Erf(double* xx, double* yy, int n)
+        public static void Erf(ref Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
+            ref var x0 = ref MemoryMarshal.GetReference(xx);
+            ref var y0 = ref MemoryMarshal.GetReference(yy);
+            var n = xx.Length;
 
             // if n < 4, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                var tmpx = stackalloc double[VSZ];
-                for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                Span<double> tmp = stackalloc double[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
 
-                Erf(tmpx, tmpx);
+                for (int j = 0; j < n; j++)
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
+
+                Erf(ref tmpx, ref tmpx, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
 
                 return;
             }
@@ -517,25 +464,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
                 i += VSZ;
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
                 i += VSZ;
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
                 i += VSZ;
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Erf(xx + i, yy + i);
+                Erf(ref x0, ref y0, i);
             }
         }
     }

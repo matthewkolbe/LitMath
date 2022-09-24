@@ -2,6 +2,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 
 namespace LitMathBenchmarks
 {
@@ -43,21 +44,17 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitDotDouble()
+        public void LitDotDouble()
         {
-            fixed (double* xx = x) fixed (double* yy = y)
-            {
-                temp = LitBasics.Dot(xx, yy, N);
-            }
+            temp = Lit.Dot(ref x[0], ref y[0], N);
         }
 
         [Benchmark]
-        public unsafe void LitDotFloat()
+        public void LitDotFloat()
         {
-            fixed (float* xx = xf) fixed (float* yy = yf)
-            {
-                temp = LitBasics.Dot(xx, yy, N);
-            }
+            var xx = xf.AsSpan();
+            var yy = yf.AsSpan();
+            temp = Lit.Dot(ref xx, ref yy);
         }
     }
 }

@@ -41,10 +41,9 @@ namespace LitMathBenchmarks
         }
 
         [Benchmark]
-        public unsafe void LitPlynomialDouble()
+        public void LitPlynomialDouble()
         {
-            fixed (double* xx = x) fixed (double* r = results) fixed (double* pp = p)
-                LitPolynomial.Value(xx, pp, r, N, order);
+            Lit.PolynomialValue(ref x[0], ref p[0], ref results[0], N, order);
         }
     }
 }

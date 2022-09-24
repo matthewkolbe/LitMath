@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,12 +13,16 @@ namespace LitMathBenchmarks
     {
         double[] to, from;
 
-        [Params(4, 8, 32, 256, 2048)]
+        [Params(32, 256, 2048)]
         public int N;
+
+        int N4;
 
         [GlobalSetup]
         public void SetUp()
         {
+            N4 = N / 4;
+
             to = new double[N];
             from = new double[N];
 
@@ -41,36 +46,50 @@ namespace LitMathBenchmarks
         [Benchmark]
         public unsafe void LitCpy()
         {
-            fixed (double* t = to) fixed (double* f = from)
-                LitUtilities.Copy(f, t, N);
+            ref var fr = ref MemoryMarshal.GetArrayDataReference(from);
+            ref var tt = ref MemoryMarshal.GetArrayDataReference(to);
+            Util.Copy(ref fr, ref tt, N);
         }
 
         [Benchmark]
-        public void UnsafeAs()
+        public void RefArithm()
         {
-            var fr = from.AsSpan();
-            var tt = to.AsSpan();
+            Unsafe.As<double[], Vector256<double>[]>(ref from);
 
-            for (int i = 0; i < N; i += 4)
+            ref var fr = ref MemoryMarshal.GetArrayDataReference(from); 
+            ref var tt = ref MemoryMarshal.GetArrayDataReference(to);
+
+            for (int i = 0; i < N;)
             {
-                var f = Unsafe.As<double, Vector256<double>>(ref fr[i]);
-                var t = Unsafe.As<double, Vector256<double>>(ref tt[i]);
-                t = Avx.Add(f, t);
-                Unsafe.As<double, Vector256<double>>(ref tt[i]) = t;
+                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
+                i += 4;
+                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
+                i += 4;
+                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
+                i += 4;
+                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
+                i += 4;
             }
         }
+
+
 
         [Benchmark]
         public unsafe void NormalCast()
         {
-            fixed(double* fr = from) fixed(double* tt = to)
-                for (int i = 0; i < N; i += 4)
+            fixed (double* fr = from) fixed (double* tt = to)
+                for (int i = 0; i < N; )
                 {
-                    var f = Avx.LoadVector256(fr + i);
-                    var t = Avx.LoadVector256(tt + i);
-                    t = Avx.Add(f, t);
-                    Avx.Store(tt, t);
+                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
+                    i += 4;
+                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
+                    i += 4;
+                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
+                    i += 4;
+                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
+                    i += 4;
                 }
+
         }
     }
 }

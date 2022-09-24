@@ -1,36 +1,37 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
-    public class LitRoot
+    public static partial class Lit
     {
-
-
         /// <summary>
         /// Calculates n square roots on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
-        /// <param name="xx">A pointer to the first argument</param>
-        /// <param name="yy">The return values</param>
-        /// <param name="n">The number of xx values to take a square root of</param>
+        /// <param name="x">A pointer to the first argument</param>
+        /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(double* xx, double* yy, int n)
+        public static void Sqrt(ref Span<double> x, ref Span<double> y)
         {
             const int VSZ = 4;
+            ref var xx = ref MemoryMarshal.GetReference(x);
+            ref var yy = ref MemoryMarshal.GetReference(y);
+            var n = x.Length;
 
             if (n < VSZ)
             {
-                var tmpx = stackalloc double[VSZ];
+                Span<double> tmpx = stackalloc double[VSZ];
+                ref var t = ref MemoryMarshal.GetReference(tmpx);
 
                 for (int j = 0; j < n; j++)
-                    tmpx[j] = xx[j];
+                    Unsafe.Add(ref t, j) = Unsafe.Add(ref xx, j);
 
-                Sqrt(tmpx, tmpx);
+                Sqrt(ref t, ref t, 0);
 
                 for (int j = 0; j < n; ++j)
-                    yy[j] = tmpx[j];
+                    Unsafe.Add(ref yy, j) = Unsafe.Add(ref t, j);
 
                 return;
             }
@@ -40,25 +41,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Sqrt(xx + i, yy + i);
-                i += 4;
-                Sqrt(xx + i, yy + i);
-                i += 4;
-                Sqrt(xx + i, yy + i);
-                i += 4;
-                Sqrt(xx + i, yy + i);
-                i += 4;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += 4)
-                Sqrt(xx + i, yy + i);
+            for (; i < (n - 3); i += VSZ)
+                Sqrt(ref xx, ref yy, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Sqrt(xx + i, yy + i);
+                Sqrt(ref xx, ref yy, i);
             }
         }
 
@@ -66,45 +67,57 @@ namespace LitMath
         /// <summary>
         /// Calculates n square roots on floats via 256-bit SIMD intrinsics. 
         /// </summary>
-        /// <param name="xx">A pointer to the first argument</param>
-        /// <param name="yy">The return values</param>
-        /// <param name="n">The number of xx values to take a square roots of</param>
+        /// <param name="x">A pointer to the first argument</param>
+        /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Sqrt(float* xx, float* yy, int n)
+        public static void Sqrt(ref Span<float> x, ref Span<float> y)
         {
+            const int VSZ = 8;
+            ref var xx = ref MemoryMarshal.GetReference(x);
+            ref var yy = ref MemoryMarshal.GetReference(y);
+            var n = x.Length;
+
+            if (n < VSZ)
+            {
+                Span<float> tmpx = stackalloc float[VSZ];
+                ref var t = ref MemoryMarshal.GetReference(tmpx);
+
+                for (int j = 0; j < n; j++)
+                    Unsafe.Add(ref t, j) = Unsafe.Add(ref xx, j);
+
+                Sqrt(ref t, ref t, 0);
+
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref yy, j) = Unsafe.Add(ref t, j);
+
+                return;
+            }
+
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
-                Sqrt(xx + i, yy + i);
-                i += 8;
-                Sqrt(xx + i, yy + i);
-                i += 8;
-                Sqrt(xx + i, yy + i);
-                i += 8;
-                Sqrt(xx + i, yy + i);
-                i += 8;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
+                Sqrt(ref xx, ref yy, i);
+                i += VSZ;
             }
 
-            // Calculates the remaining sets of 8 values in a standard loop
-            for (; i < (n - 7); i += 8)
-                Sqrt(xx + i, yy + i);
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 7); i += VSZ)
+                Sqrt(ref xx, ref yy, i);
 
-            // Cleans up any excess individual values (if n%8 != 0)
+            // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
-                var nn = i;
-                var tmpx = stackalloc float[8];
-
-                for (int j = 0; j < (n - i); j++)
-                    tmpx[j] = xx[i + j];
-
-                Sqrt(tmpx, tmpx);
-
-                for (; i < n; ++i)
-                    yy[i] = tmpx[i - nn];
+                i = n - VSZ;
+                Sqrt(ref xx, ref yy, i);
             }
         }
 
@@ -115,9 +128,9 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static unsafe void Sqrt(double* xx, double* yy)
+        static void Sqrt(ref double xx, ref double yy, int index)
         {
-            Avx.Store(yy, Avx.Sqrt(Avx.LoadVector256(xx)));
+            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(ref xx, index)));
         }
 
 
@@ -127,40 +140,9 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static unsafe void Sqrt(float* xx, float* yy)
+        static void Sqrt(ref float xx, ref float yy, int index)
         {
-            Avx.Store(yy, Avx.Sqrt(Avx.LoadVector256(xx)));
-        }
-
-        /// <summary>
-        /// Calculates 4 square roots on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="xx">A Span to the first of 4 arguments</param>
-        /// <param name="yy">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sqrt(ref Span<double> xx, ref Span<double> yy)
-        {
-            unsafe
-            {
-                fixed (double* x = xx) fixed (double* y = yy)
-                    Sqrt(x, y, xx.Length);
-            }
-        }
-
-
-        /// <summary>
-        /// Calculates 8 square roots on floats via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="xx">A Span to the first of 8 arguments</param>
-        /// <param name="yy">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sqrt(ref Span<float> xx, ref Span<float> yy)
-        {
-            unsafe
-            {
-                fixed (float* x = xx) fixed (float* y = yy)
-                    Sqrt(x, y, xx.Length);
-            }
+            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(ref xx, index)));
         }
     }
 }

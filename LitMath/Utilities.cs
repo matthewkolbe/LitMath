@@ -1,13 +1,14 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
 
 namespace LitMath
 {
-    public static class LitUtilities
+    public static class Util
     {
 
         /// <summary>
@@ -16,11 +17,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(ref Span<double> from, ref Span<double> to)
         {
-            unsafe
-            {
-                fixed (double* f = from) fixed (double* t = to)
-                    Copy(f, t, from.Length);
-            }
+            ref var fr = ref MemoryMarshal.GetReference(from);
+            ref var t = ref MemoryMarshal.GetReference(to);
+            Copy(ref fr, ref t, from.Length);
         }
 
 
@@ -30,11 +29,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(ref Span<int> from, ref Span<int> to)
         {
-            unsafe
-            {
-                fixed (int* f = from) fixed (int* t = to)
-                    Copy(f, t, from.Length);
-            }
+            ref var fr = ref MemoryMarshal.GetReference(from);
+            ref var t = ref MemoryMarshal.GetReference(to);
+            Copy(ref fr, ref t, from.Length);
         }
 
 
@@ -44,11 +41,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(ref Span<float> from, ref Span<float> to)
         {
-            unsafe
-            {
-                fixed (float* f = from) fixed (float* t = to)
-                    Copy(f, t, from.Length);
-            }
+            ref var fr = ref MemoryMarshal.GetReference(from);
+            ref var t = ref MemoryMarshal.GetReference(to);
+            Copy(ref fr, ref t, from.Length);
         }
 
 
@@ -60,28 +55,10 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Apply(ref Span<double> v, double value)
         {
-            unsafe
-            {
-                fixed (double* vv = v)
-                    Apply(vv, v.Length, value);
-            }
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            Apply(ref vv, v.Length, value);
         }
 
-
-        /// <summary>
-        /// Returns the sum of absolute values of a Span
-        /// </summary>
-        /// <param name="v">Pointer to the head of the array</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double AbsSum(ref Span<double> v)
-        {
-            unsafe
-            {
-                fixed (double* vv = v)
-                    return AbsSum(vv, v.Length);
-            }
-        }
 
 
         /// <summary>
@@ -91,28 +68,28 @@ namespace LitMath
         /// <param name="to"></param>
         /// <param name="n">Number of data pieces to copy</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Copy(double* from, double* to, int n)
+        public static void Copy(ref double from, ref double to, int n)
         {
             int i = 0;
 
             while (i < (n - 15))
             {
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 4;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 4;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 4;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 4;
             }
 
             for (; i < (n - 3); i += 4)
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
 
             // Cleans up the residual
             for (; i < n; i++)
-                to[i] = from[i];
+                Unsafe.Add(ref to, i) = Unsafe.Add(ref from, i);
         }
 
 
@@ -123,31 +100,31 @@ namespace LitMath
         /// <param name="to"></param>
         /// <param name="n">Number of data pieces to copy</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Copy(int* from, int* to, int n)
+        public static void Copy(ref int from, ref int to, int n)
         {
             int i = 0;
 
             while (i < (n - 31))
             {
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
             }
 
             while (i < (n - 7))
             {
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
             }
 
             // Cleans up the residual
             for (; i < n; i++)
-                to[i] = from[i];
+                Unsafe.Add(ref to, i) = Unsafe.Add(ref from, i);
         }
 
 
@@ -158,28 +135,28 @@ namespace LitMath
         /// <param name="to"></param>
         /// <param name="n">Number of data pieces to copy</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Copy(float* from, float* to, float n)
+        public static void Copy(ref float from, ref float to, float n)
         {
             int i = 0;
 
             while (i < (n - 31))
             {
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
                 i += 8;
             }
 
             for (; i < (n - 7); i += 8)
-                Avx.Store(to + i, Avx.LoadVector256(from + i));
+                StoreV256(ref to, i, LoadV256(ref from, i));
 
             // Cleans up the residual
             for (; i < n; i++)
-                to[i] = from[i];
+                Unsafe.Add(ref to, i) = Unsafe.Add(ref from, i);
         }
 
 
@@ -190,30 +167,30 @@ namespace LitMath
         /// <param name="n">Number of data pieces to broadcast</param>
         /// <param name="value"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Apply(double* v, int n, double value)
+        public static void Apply(ref double v, int n, double value)
         {
             int i = 0;
-            var x = Avx.BroadcastScalarToVector256(&value);
+            var x = Vector256.Create(value);
 
             while (i < (n - 15))
             {
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 4;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 4;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 4;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 4;
             }
 
             for (; i < (n - 3); i += 4)
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
 
 
             // Cleans up the residual
             for (; i < n; i++)
-                v[i] = value;
+                Unsafe.Add(ref v, i) = value;
         }
 
 
@@ -224,37 +201,36 @@ namespace LitMath
         /// <param name="n">Number of data pieces to broadcast</param>
         /// <param name="value"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Apply(float* v, int n, float value)
+        public static void Apply(ref float v, int n, float value)
         {
             int i = 0;
-            var x = Avx.BroadcastScalarToVector256(&value);
+            var x = Vector256.Create(value);
 
             while (i < (n - 31))
             {
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 8;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 8;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 8;
-                Avx.Store(v + i, x);
+                StoreV256(ref v, i, x);
                 i += 8;
             }
 
             for (; i < (n - 7); i += 8)
-                Avx.Store(v + i, x);
-
+                StoreV256(ref v, i, x);
 
             // Cleans up the residual
             for (; i < n; i++)
-                v[i] = value;
+                Unsafe.Add(ref v, i) = value;
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void Apply(byte* v, uint n, byte value)
+        public static void Apply(ref byte v, uint n, byte value)
         {
-            Unsafe.InitBlock(v, value, n);
+            Unsafe.InitBlock(ref v, value, n);
         }
 
 
@@ -265,33 +241,48 @@ namespace LitMath
         /// <param name="n">The size of the array</param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe double AbsSum(double* v, int n)
+        public static double AbsSum(ref Span<double> v)
         {
             const int VSZ = 4;
-            var r = Vector256.Create(0.0);
+            var n = v.Length;
+            ref var vv = ref MemoryMarshal.GetReference(v);
             int i = 0;
+
+            if (n < VSZ)
+            {
+                var ret = 0.0;
+                for (; i < n; ++i)
+                    ret += System.Math.Abs(v[i]);
+
+                return ret;
+            }
+
+            var r = Vector256.Create(0.0);
+            var r2 = Vector256.Create(0.0);
 
             while (i < (n - 15))
             {
-                r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
+                r = Avx.Add(Abs(LoadV256(ref vv, i)), r);
                 i += VSZ;
-                r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
+                r2 = Avx.Add(Abs(LoadV256(ref vv, i)), r2);
                 i += VSZ;
-                r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
+                r = Avx.Add(Abs(LoadV256(ref vv, i)), r);
                 i += VSZ;
-                r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
+                r2 = Avx.Add(Abs(LoadV256(ref vv, i)), r2);
                 i += VSZ;
             }
 
+            r = Avx.Add(r, r2);
+
             for (; i < (n - 3); i += VSZ)
-                r = Avx.Add(Abs(Avx.LoadVector256(v + i)), r);
+                r = Avx.Add(Abs(LoadV256(ref vv, i)), r);
 
 
-            var rr = LitBasics.Aggregate(ref r);
+            var rr = Lit.Aggregate(ref r);
 
             // Cleans up the residual
             for (; i < n; i++)
-                rr += Math.Abs(v[i]);
+                rr += System.Math.Abs(v[i]);
 
             return rr;
         }
@@ -300,34 +291,34 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Abs(ref Vector256<double> x, ref Vector256<double> y)
         {
-            y = Avx.AndNot(LitConstants.Double.Util.NEGATIVE_ZERO, x);
+            y = Avx.AndNot(Lit.Double.Util.NEGATIVE_ZERO, x);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> Abs(ref Vector256<double> x)
         {
-            return Avx.AndNot(LitConstants.Double.Util.NEGATIVE_ZERO, x);
+            return Avx.AndNot(Lit.Double.Util.NEGATIVE_ZERO, x);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> Abs(Vector256<double> x)
         {
-            return Avx.AndNot(LitConstants.Double.Util.NEGATIVE_ZERO, x);
+            return Avx.AndNot(Lit.Double.Util.NEGATIVE_ZERO, x);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ConvertLongToDouble(ref Vector256<long> x, ref Vector256<double> y)
         {
-            y = Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD)), LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            y = Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, Lit.Long.MAGIC_LONG_DOUBLE_ADD)), Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> ConvertLongToDouble(ref Vector256<long> x)
         {
-            return Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, LitConstants.Long.MAGIC_LONG_DOUBLE_ADD)), LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            return Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, Lit.Long.MAGIC_LONG_DOUBLE_ADD)), Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
         }
 
 
@@ -337,9 +328,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ConvertXtoPower(ref Vector256<double> x, ref Vector256<double> y)
         {
-            y = Avx2.Add(x, LitConstants.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            y = Avx2.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
             var z = Vector256.AsInt64(y);
-            z = Avx2.Add(z, LitConstants.Long.ONE_THOUSAND_TWENTY_THREE);
+            z = Avx2.Add(z, Lit.Long.ONE_THOUSAND_TWENTY_THREE);
             z = Avx2.ShiftLeftLogical(z, 52);
             y = Vector256.AsDouble(z);
         }
@@ -397,9 +388,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> Sign(Vector256<double> x)
         {
-            return IfElse(Avx.CompareGreaterThanOrEqual(x, LitConstants.Double.Util.ZERO),
-                LitConstants.Double.Util.ONE,
-                LitConstants.Double.Util.NEGONE);
+            return IfElse(Avx.CompareGreaterThanOrEqual(x, Lit.Double.Util.ZERO),
+                Lit.Double.Util.ONE,
+                Lit.Double.Util.NEGONE);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -530,6 +521,18 @@ namespace LitMath
         public static Vector128<int> Min(Vector128<int> x, Vector128<int> min)
         {
             return IfElse(Avx.CompareLessThan(x, min), x, min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<T> LoadV256<T>(ref T ptr, int offset) where T : unmanaged
+        {
+            return Unsafe.As<T, Vector256<T>>(ref Unsafe.Add(ref ptr, offset));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreV256<T>(ref T ptr, int offset, Vector256<T> value) where T : unmanaged
+        {
+            Unsafe.As<T, Vector256<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
         }
     }
 }

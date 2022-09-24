@@ -8,13 +8,13 @@ namespace LitMathTests
     public class PolynomialTest
     {
         [Test]
-        public unsafe void PolynomialDoubleAccuracy()
+        public void PolynomialDoubleAccuracy()
         {
             var n = 1000;
             var m = 10;
-            var x = new double[n];
-            var y = new double[n];
-            var p = new double[m];
+            Span<double> x = new double[n];
+            Span<double> y = new double[n];
+            Span<double> p = new double[m];
             var r = new Random(10);
 
             for (int i = 0; i < n; i++)
@@ -23,24 +23,23 @@ namespace LitMathTests
             for (int i = 0; i < m; i++)
                 p[i] = r.NextDouble();
 
-            fixed (double* xx = x) fixed (double* yy = y) fixed (double* pp = p)
-                LitPolynomial.Value(xx, pp, yy, n, m);
+            Lit.PolynomialValue(ref x, ref p, ref y);
 
             for (int i = 0; i < n; ++i)
             {
-                var real = Polynomial.Evaluate(x[i], p);
+                var real = Polynomial.Evaluate(x[i], p.ToArray());
                 Assert.AreEqual(y[i], real, 1e-7);
             }
         }
 
         [Test]
-        public unsafe void PolynomialFloatAccuracy()
+        public void PolynomialFloatAccuracy()
         {
             var n = 1000;
             var m = 10;
-            var x = new float[n];
-            var y = new float[n];
-            var p = new float[m];
+            Span<float> x = new float[n];
+            Span<float> y = new float[n];
+            Span<float> p = new float[m];
             var pdub = new double[m];
             var r = new Random(10);
 
@@ -53,8 +52,7 @@ namespace LitMathTests
                 pdub[i] = p[i];
             }
 
-            fixed (float* xx = x) fixed (float* yy = y) fixed (float* pp = p)
-                LitPolynomial.Value(xx, pp, yy, n, m);
+            Lit.PolynomialValue(ref x, ref p, ref y);
 
             for (int i = 0; i < n; ++i)
             {

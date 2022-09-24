@@ -24,8 +24,8 @@ namespace LitMathBenchmarks
 
             for (int i = 0; i < N; i++)
             {
-                logs[i] = Math.Exp((i - N / 2) / 100);
-                flogs[i] = (float)Math.Exp((i - N / 2) / 100);
+                logs[i] = System.Math.Exp((i - N / 2) / 100);
+                flogs[i] = (float)System.Math.Exp((i - N / 2) / 100);
             }
         }
 
@@ -33,25 +33,24 @@ namespace LitMathBenchmarks
         public void NaiveLogDouble()
         {
             for (int i = 0; i < N; i++)
-                temp = Math.Log(logs[i]);
+                temp = System.Math.Log(logs[i]);
         }
 
         [Benchmark]
-        public unsafe void LitLogDouble()
+        public void LitLogDouble()
         {
-            fixed (double* lg = logs) fixed(double* r = results)
-            {
-                LitLog.Ln(lg, r, N);
-            }
+            var lg = logs.AsSpan();
+            var r = results.AsSpan();
+            Lit.Ln(ref lg, ref r);
+            
         }
 
         [Benchmark]
-        public unsafe void LitLogFloat()
+        public void LitLogFloat()
         {
-            fixed (float* lg = flogs) fixed(float* r = fresults)
-            {
-                LitLog.Ln(lg, r, N);
-            }
+            var lg = flogs.AsSpan();
+            var r = fresults.AsSpan();
+            Lit.Ln(ref lg, ref r);
         }
 
     }
