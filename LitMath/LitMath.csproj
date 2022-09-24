@@ -19,7 +19,13 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>MAJOR BREAKING CHANGES. 
+
+I've eliminated all pointer interfaces and usage of raw pointers.
+
+I've changed the class names from Lit[thing] (e.g. LitExp) to just a large shared class called Lit.
+
+Polynomial changed its name as well.</PackageReleaseNotes>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
