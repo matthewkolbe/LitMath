@@ -24,4 +24,4 @@ Lit.Exp(ref x, ref y);
 LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
 
 ## Non-Math Things
-Making a library like this involves reinventing the wheel so to speak on very basic concepts. `LitUtilities` includes methods like `Max` and `Min` and `IfElse`, which are key to many programming problems in AVX programming, because it needs to be branch-free.
+Making a library like this involves reinventing the wheel so to speak on very basic concepts. The `Util` class includes methods like `Max` and `Min` and `IfElse`, which are key to many programming problems in AVX programming, because it needs to be branch-free.
