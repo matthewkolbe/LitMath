@@ -82,6 +82,90 @@ namespace LitMath
         /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ChebyshevSecondKindExpExtrapolation(ref Span<double> xx, ref Span<double> p, ref Span<double> rr)
+        {
+            const int VSZ = 4;
+            var n = xx.Length;
+            ref var x = ref MemoryMarshal.GetReference(xx);
+            ref var y = ref MemoryMarshal.GetReference(rr);
+            Vector256<double> oy, inx;
+
+            // if n < 4, then we handle the special case by creating a 4 element array to work with
+            if (n < VSZ)
+            {
+                Span<double> tmp = stackalloc double[VSZ];
+                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
+                for (int j = 0; j < n; j++)
+                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
+
+                inx = Util.LoadV256(ref tmpx, 0);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref tmpx, 0, oy);
+
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
+
+                return;
+            }
+
+            int i = 0;
+
+            // Calculates values in an unrolled manner if the number of values is large enough
+            while (i < (n - 15))
+            {
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+                i += VSZ;
+
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+                i += VSZ;
+
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+                i += VSZ;
+
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+                i += VSZ;
+            }
+
+            // Calculates the remaining sets of 4 values in a standard loop
+            for (; i < (n - 3); i += VSZ)
+            {
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+                i += VSZ;
+            }
+
+            // Cleans up any excess individual values (if n%4 != 0)
+            if (i != n)
+            {
+                i = n - VSZ;
+                inx = Util.LoadV256(ref x, i);
+                oy = Vector256.Create(0.0);
+                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                Util.StoreV256(ref y, i, oy);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> PolynomialDerivative(ref Vector256<double> x, ref Span<Vector256<double>> p)
         {
             var r = p[p.Length - 1];
@@ -100,7 +184,7 @@ namespace LitMath
         /// <param name="d">Derivative</param>
         /// <param name="n"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevFirst(ref Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, ref Span<double> coefficients)
+        public static void ChebyshevFirst(ref Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, ref ReadOnlySpan<double> coefficients)
         {
             Span<Vector256<double>> rr = stackalloc Vector256<double>[coefficients.Length];
             Span<Vector256<double>> dd = stackalloc Vector256<double>[coefficients.Length];
@@ -121,7 +205,7 @@ namespace LitMath
             {
                 cc[i] = Vector256.Create(coefficients[i]);
                 rr[i] = Fma.MultiplySubtract(x2, rr[i - 1], rr[i - 2]);
-                dd[i] = Avx.Subtract(Fma.MultiplyAdd(Lit.Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
+                dd[i] = Avx.Subtract(Fma.MultiplyAdd(Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
             }
 
             Lit.Dot(ref cc, ref rr, ref r);
@@ -158,7 +242,7 @@ namespace LitMath
             {
                 cc[i] = Vector256.Create(coefficients[i]);
                 rr[i] = Fma.MultiplySubtract(x2, rr[i - 1], rr[i - 2]);
-                dd[i] = Avx.Subtract(Fma.MultiplyAdd(Lit.Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
+                dd[i] = Avx.Subtract(Fma.MultiplyAdd(Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
             }
 
             Lit.Dot(ref cc, ref rr, ref r);
@@ -175,18 +259,44 @@ namespace LitMath
         {
             Vector256<double> d = Vector256.Create(0.0);
             var mask = Avx.Or(
-                            Avx.CompareLessThanOrEqual(x, Lit.Double.Polynomial.NEGONE),
-                            Avx.CompareGreaterThanOrEqual(x, Lit.Double.Polynomial.ONE));
+                            Avx.CompareLessThanOrEqual(x, Double.Polynomial.NEGONE),
+                            Avx.CompareGreaterThanOrEqual(x, Double.Polynomial.ONE));
 
-            var xx = Util.Min(Util.Max(x, Lit.Double.Polynomial.NEGONE), Lit.Double.Polynomial.ONE);
+            var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
 
             ChebyshevSecond(ref xx, ref r, ref d, ref coefficients);
 
             var out_range_r = r;
 
             // compute the out of range value
-            var sign = Util.Sign(Avx.Multiply(Lit.Double.Polynomial.NEGONE, x));
-            var arg = Avx.Add(Avx.Multiply(Util.Abs(Avx.Subtract(x, xx)), Lit.Double.Polynomial.NEGONE), Lit.Double.Polynomial.NEGONE);
+            var sign = Util.Sign(Avx.Multiply(Double.Polynomial.NEGONE, x));
+            var arg = Avx.Add(Avx.Multiply(Util.Abs(Avx.Subtract(x, xx)), Double.Polynomial.NEGONE), Double.Polynomial.NEGONE);
+            out_range_r = Avx.Add(Avx.Multiply(Avx.Multiply(d, Lit.Exp(arg)), sign), out_range_r);
+
+            r = Util.IfElse(mask, out_range_r, r);
+        }
+
+       /// <summary>
+       /// Returns the result of the Chebyshev Second Kind polynomial evaluated at x, but with extrapolation of and exponential type
+       /// for values outside of[-1, 1]
+       /// </summary>
+       [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ChebyshevSecondKindExpExtrapolation(ref Vector256<double> x, ref Vector256<double> r, ref Span<double> coefficients)
+        {
+            Vector256<double> d = Vector256.Create(0.0);
+            var mask = Avx.Or(
+                            Avx.CompareLessThanOrEqual(x, Double.Polynomial.NEGONE),
+                            Avx.CompareGreaterThanOrEqual(x, Double.Polynomial.ONE));
+
+            var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
+
+            ChebyshevSecond(ref xx, ref r, ref d, ref coefficients);
+
+            var out_range_r = r;
+
+            // compute the out of range value
+            var sign = Util.Sign(Avx.Multiply(Double.Polynomial.NEGONE, x));
+            var arg = Avx.Add(Avx.Multiply(Util.Abs(Avx.Subtract(x, xx)), Double.Polynomial.NEGONE), Double.Polynomial.NEGONE);
             out_range_r = Avx.Add(Avx.Multiply(Avx.Multiply(d, Lit.Exp(arg)), sign), out_range_r);
 
             r = Util.IfElse(mask, out_range_r, r);
@@ -198,22 +308,22 @@ namespace LitMath
         /// for values outside of[-1, 1]
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void ChebyshevFirstKindExpExtrapolation(Vector256<double> x, ref Vector256<double> r, ref Span<double> coefficients)
+        public static unsafe void ChebyshevFirstKindExpExtrapolation(Vector256<double> x, Vector256<double> r, ref ReadOnlySpan<double> coefficients)
         {
             Vector256<double> d = Vector256.Create(0.0);
             var mask = Avx.Or(
-                            Avx.CompareLessThanOrEqual(x, Lit.Double.Polynomial.NEGONE),
-                            Avx.CompareGreaterThanOrEqual(x, Lit.Double.Polynomial.ONE));
+                            Avx.CompareLessThanOrEqual(x, Double.Polynomial.NEGONE),
+                            Avx.CompareGreaterThanOrEqual(x, Double.Polynomial.ONE));
 
-            var xx = Util.Min(Util.Max(x, Lit.Double.Polynomial.NEGONE), Lit.Double.Polynomial.ONE);
+            var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
 
             ChebyshevFirst(ref xx, ref r, ref d, ref coefficients);
 
             var out_range_r = r;
 
             // compute the out of range value
-            var sign = Util.Sign(Avx.Multiply(Lit.Double.Polynomial.NEGONE, x));
-            var arg = Avx.Add(Avx.Multiply(Util.Abs(Avx.Subtract(x, xx)), Lit.Double.Polynomial.NEGONE), Lit.Double.Polynomial.NEGONE);
+            var sign = Util.Sign(Avx.Multiply(Double.Polynomial.NEGONE, x));
+            var arg = Avx.Add(Avx.Multiply(Util.Abs(Avx.Subtract(x, xx)), Double.Polynomial.NEGONE), Double.Polynomial.NEGONE);
             out_range_r = Avx.Add(Avx.Multiply(Avx.Multiply(d, Lit.Exp(arg)), sign), out_range_r);
 
             r = Util.IfElse(mask, out_range_r, r);
@@ -342,7 +452,7 @@ namespace LitMath
 
 
         /// <summary>
-        /// Computes a polynomial derivatve of order order via AVX-256 intrinsics
+        /// Computes a polynomial derivative of order order via AVX-256 intrinsics
         /// </summary>
         /// <param name="x">Arguments</param>
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>

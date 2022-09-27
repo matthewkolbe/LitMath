@@ -21,11 +21,11 @@ namespace LitMath
             // Checks if x is lower than zero. Stores the information for later to modify the result. If, for
             // example, only x[1] < 0, then end[1] will be NaN, and the rest zero. We add this to the result at
             // the end, which will force y[1] to be NaN.
-            var end = Avx.CompareLessThanOrEqual(x, Lit.Double.Log.ZERO);
+            var end = Avx.CompareLessThanOrEqual(x, Double.Log.ZERO);
 
             // Handles positive infinity as a special case where log2(infinity)=infinity. Uses the same trick at
             // the end.
-            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Lit.Double.Log.POSITIVE_INFINITY), Lit.Double.Log.POSITIVE_INFINITY), end);
+            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Double.Log.POSITIVE_INFINITY), Double.Log.POSITIVE_INFINITY), end);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
@@ -36,18 +36,18 @@ namespace LitMath
             // becomes log(d)+m, where d is in [1, 2]. Then it uses a series approximation of log to approximate 
             // the value in [1, 2]
 
-            var xl = Vector256.AsInt64(Avx.Max(x, Lit.Double.Log.ZERO));
+            var xl = Vector256.AsInt64(Avx.Max(x, Double.Log.ZERO));
             var mantissa = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 52), Lit.Long.ONE_THOUSAND_TWENTY_THREE);
 
             Util.ConvertLongToDouble(ref mantissa, ref y);
 
             xl = Avx2.Or(Avx2.And(xl, Lit.Long.DECIMAL_MASK_FOR_DOUBLE), Lit.Long.EXPONENT_MASK_FOR_DOUBLE);
 
-            var d = Avx.Multiply(Avx.Or(Vector256.AsDouble(xl), Lit.Double.Log.ONE), Lit.Double.Log.TWO_THIRDS);
+            var d = Avx.Multiply(Avx.Or(Vector256.AsDouble(xl), Double.Log.ONE), Double.Log.TWO_THIRDS);
 
             LogApprox(ref d, ref d);
 
-            y = Avx.Add(Fma.MultiplyAdd(d, Lit.Double.Log.LOG2EF, Lit.Double.Log.LOG_ONE_POINT_FIVE), y);
+            y = Avx.Add(Fma.MultiplyAdd(d, Double.Log.LOG2EF, Double.Log.LOG_ONE_POINT_FIVE), y);
             //y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Double.Log.LOG2EF), LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
@@ -59,24 +59,24 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log2(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var end = Avx.CompareLessThanOrEqual(x, Lit.Float.Log.ZERO);
-            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Lit.Float.Log.POSITIVE_INFINITY), Lit.Float.Log.POSITIVE_INFINITY), end);
+            var end = Avx.CompareLessThanOrEqual(x, Float.Log.ZERO);
+            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Float.Log.POSITIVE_INFINITY), Float.Log.POSITIVE_INFINITY), end);
             end = Avx.Add(Avx.CompareNotEqual(x, x), end);
 
-            var xl = Vector256.AsInt32(Avx.Max(x, Lit.Float.Log.ZERO));
+            var xl = Vector256.AsInt32(Avx.Max(x, Float.Log.ZERO));
             var m = Avx2.Subtract(Avx2.ShiftRightLogical(xl, 23), Lit.Int.ONE_HUNDRED_TWENTY_SEVEN);
 
             y = Avx.ConvertToVector256Single(m);
 
             xl = Avx2.Or(Avx2.And(xl, Lit.Int.DECIMAL_MASK_FOR_FLOAT), Lit.Int.EXPONENT_MASK_FOR_FLOAT);
 
-            var d = Avx.Multiply(Avx.Or(Vector256.AsSingle(xl), Lit.Float.Log.ONE), Lit.Float.Log.TWO_THIRDS);
+            var d = Avx.Multiply(Avx.Or(Vector256.AsSingle(xl), Float.Log.ONE), Float.Log.TWO_THIRDS);
 
             LogApprox(ref d, ref d);
 
 
             //y = Avx.Add(Fma.MultiplyAdd(d, LitConstants.Float.Log.LOG2EF, LitConstants.Float.Log.LOG_ONE_POINT_FIVE), y);
-            y = Avx.Add(Avx.Add(Avx.Multiply(d, Lit.Float.Log.LOG2EF), Lit.Float.Log.LOG_ONE_POINT_FIVE), y);
+            y = Avx.Add(Avx.Add(Avx.Multiply(d, Float.Log.LOG2EF), Float.Log.LOG_ONE_POINT_FIVE), y);
             y = Avx.Add(end, y);
         }
 
@@ -87,18 +87,18 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogApprox(ref Vector256<double> x, ref Vector256<double> y)
         {
-            y = Avx.Divide(Avx.Subtract(x, Lit.Double.Log.ONE), Avx.Add(x, Lit.Double.Log.ONE));
+            y = Avx.Divide(Avx.Subtract(x, Double.Log.ONE), Avx.Add(x, Double.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Fma.MultiplyAdd(ysq, Lit.Double.Log.ONE_THIRTEENTH, Lit.Double.Log.ONE_ELEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_NINTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_SEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_FIFTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE_THIRD);
-            rx = Fma.MultiplyAdd(ysq, rx, Lit.Double.Log.ONE);
+            var rx = Fma.MultiplyAdd(ysq, Double.Log.ONE_THIRTEENTH, Double.Log.ONE_ELEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_NINTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_SEVENTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_FIFTH);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_THIRD);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE);
 
             rx = Avx.Multiply(y, rx);
-            y = Avx.Multiply(rx, Lit.Double.Log.TWO);
+            y = Avx.Multiply(rx, Double.Log.TWO);
         }
 
 
@@ -108,21 +108,21 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LogApprox(ref Vector256<float> x, ref Vector256<float> y)
         {
-            y = Avx.Divide(Avx.Subtract(x, Lit.Float.Log.ONE), Avx.Add(x, Lit.Float.Log.ONE));
+            y = Avx.Divide(Avx.Subtract(x, Float.Log.ONE), Avx.Add(x, Float.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Avx.Multiply(ysq, Lit.Float.Log.ONE_ELEVENTH);
-            rx = Avx.Add(rx, Lit.Float.Log.ONE_NINTH);
+            var rx = Avx.Multiply(ysq, Float.Log.ONE_ELEVENTH);
+            rx = Avx.Add(rx, Float.Log.ONE_NINTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, Lit.Float.Log.ONE_SEVENTH);
+            rx = Avx.Add(rx, Float.Log.ONE_SEVENTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, Lit.Float.Log.ONE_FIFTH);
+            rx = Avx.Add(rx, Float.Log.ONE_FIFTH);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, Lit.Float.Log.ONE_THIRD);
+            rx = Avx.Add(rx, Float.Log.ONE_THIRD);
             rx = Avx.Multiply(ysq, rx);
-            rx = Avx.Add(rx, Lit.Float.Log.ONE);
+            rx = Avx.Add(rx, Float.Log.ONE);
             rx = Avx.Multiply(y, rx);
-            y = Avx.Multiply(rx, Lit.Float.Log.TWO);
+            y = Avx.Multiply(rx, Float.Log.TWO);
         }
 
 
@@ -133,7 +133,7 @@ namespace LitMath
         public static void Ln(ref Vector256<double> x, ref Vector256<double> y)
         {
             Log2(ref x, ref y);
-            y = Avx.Multiply(Lit.Double.Log.LN2, y);
+            y = Avx.Multiply(Double.Log.LN2, y);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace LitMath
         {
             var y = Vector256.Create(0.0);
             Log2(ref x, ref y);
-            return Avx.Multiply(Lit.Double.Log.LN2, y);
+            return Avx.Multiply(Double.Log.LN2, y);
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace LitMath
         public static Vector256<double> Ln(Vector256<double> x)
         {
             Log2(ref x, ref x);
-            return Avx.Multiply(Lit.Double.Log.LN2, x);
+            return Avx.Multiply(Double.Log.LN2, x);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace LitMath
         public static void Ln(ref Vector256<float> x, ref Vector256<float> y)
         {
             Log2(ref x, ref y);
-            y = Avx.Multiply(Lit.Float.Log.LN2, y);
+            y = Avx.Multiply(Float.Log.LN2, y);
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace LitMath
         {
             var y = Vector256.Create(0.0f);
             Log2(ref x, ref y);
-            return Avx.Multiply(Lit.Float.Log.LN2, y);
+            return Avx.Multiply(Float.Log.LN2, y);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace LitMath
         public static Vector256<float> Ln(Vector256<float> x)
         {
             Log2(ref x, ref x);
-            return Avx.Multiply(Lit.Float.Log.LN2, x);
+            return Avx.Multiply(Float.Log.LN2, x);
         }
 
 

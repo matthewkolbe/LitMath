@@ -335,26 +335,26 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(ref Vector256<double> mean, ref Vector256<double> sigma, ref Vector256<double> x, ref Vector256<double> y)
         {
-            var s = Avx.Multiply(sigma, Lit.Double.NormDist.SQRT2);
+            var s = Avx.Multiply(sigma, Double.NormDist.SQRT2);
             var m = Avx.Subtract(x, mean);
             m = Avx.Divide(m, s);
             Erf(ref m, ref y);
-            y = Avx.Add(y, Lit.Double.NormDist.ONE);
-            y = Avx.Multiply(y, Lit.Double.NormDist.HALF);
+            y = Avx.Add(y, Double.NormDist.ONE);
+            y = Avx.Multiply(y, Double.NormDist.HALF);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(ref Vector256<float> mean, ref Vector256<float> sigma, ref Vector256<float> x, ref Vector256<float> y)
         {
-            var s = Avx.Multiply(sigma, Lit.Float.NormDist.SQRT2);
+            var s = Avx.Multiply(sigma, Float.NormDist.SQRT2);
             var m = Avx.Subtract(x, mean);
             m = Avx.Divide(m, s);
             //LitUtilities.Max(ref m, LitConstants.Float.NormDist.MAX);
             //LitUtilities.Min(ref m, LitConstants.Float.NormDist.MIN);
             Erf(ref m, ref y);
-            y = Avx.Add(y, Lit.Float.NormDist.ONE);
-            y = Avx.Multiply(y, Lit.Float.NormDist.HALF);
+            y = Avx.Add(y, Float.NormDist.ONE);
+            y = Avx.Multiply(y, Float.NormDist.HALF);
         }
 
 
@@ -362,32 +362,32 @@ namespace LitMath
         public static void Erf(ref Vector256<double> x, ref Vector256<double> y)
         {
 
-            var sign = Avx.And(Lit.Double.NormDist.NEGATIVE_ZERO, x);
-            sign = Avx.Or(sign, Lit.Double.NormDist.ONE);
-            var xx = Avx.AndNot(Lit.Double.NormDist.NEGATIVE_ZERO, x);
+            var sign = Avx.And(Double.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, Double.NormDist.ONE);
+            var xx = Avx.AndNot(Double.NormDist.NEGATIVE_ZERO, x);
 
-            var t = Fma.MultiplyAdd(Lit.Double.NormDist.ONE_OVER_PI, xx, Lit.Double.NormDist.ONE);
-            t = Avx.Divide(Lit.Double.NormDist.ONE, t);
+            var t = Fma.MultiplyAdd(Double.NormDist.ONE_OVER_PI, xx, Double.NormDist.ONE);
+            t = Avx.Divide(Double.NormDist.ONE, t);
 
-            var yy = Fma.MultiplyAdd(Lit.Double.NormDist.E12, t, Lit.Double.NormDist.E11);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E10);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E9);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E8);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E7);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E6);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E5);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E4);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E3);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E2);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Double.NormDist.E1);
+            var yy = Fma.MultiplyAdd(Double.NormDist.E12, t, Double.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E1);
             yy = Avx.Multiply(yy, t);
 
-            var exsq = Avx.Multiply(Avx.Multiply(xx, Lit.Double.NormDist.NEGONE), xx);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, Double.NormDist.NEGONE), xx);
 
             Lit.Exp(ref exsq, ref exsq);
 
             yy = Avx.Multiply(yy, exsq);
-            yy = Avx.Add(Lit.Double.NormDist.ONE, yy);
+            yy = Avx.Add(Double.NormDist.ONE, yy);
             y = Avx.Multiply(yy, sign);
         }
 
@@ -395,32 +395,32 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(ref Vector256<float> x, ref Vector256<float> y)
         {
-            var sign = Avx.And(Lit.Float.NormDist.NEGATIVE_ZERO, x);
-            sign = Avx.Or(sign, Lit.Float.NormDist.ONE);
-            var xx = Avx.AndNot(Lit.Float.NormDist.NEGATIVE_ZERO, x);
+            var sign = Avx.And(Float.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx.Or(sign, Float.NormDist.ONE);
+            var xx = Avx.AndNot(Float.NormDist.NEGATIVE_ZERO, x);
 
-            var t = Fma.MultiplyAdd(Lit.Float.NormDist.ONE_OVER_PI, xx, Lit.Float.NormDist.ONE);
-            t = Avx.Divide(Lit.Float.NormDist.ONE, t);
+            var t = Fma.MultiplyAdd(Float.NormDist.ONE_OVER_PI, xx, Float.NormDist.ONE);
+            t = Avx.Divide(Float.NormDist.ONE, t);
 
-            var yy = Fma.MultiplyAdd(Lit.Float.NormDist.E12, t, Lit.Float.NormDist.E11);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E10);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E9);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E8);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E7);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E6);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E5);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E4);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E3);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E2);
-            yy = Fma.MultiplyAdd(yy, t, Lit.Float.NormDist.E1);
+            var yy = Fma.MultiplyAdd(Float.NormDist.E12, t, Float.NormDist.E11);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E10);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E8);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E6);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E4);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E2);
+            yy = Fma.MultiplyAdd(yy, t, Float.NormDist.E1);
             yy = Avx.Multiply(yy, t);
 
-            var exsq = Avx.Multiply(Avx.Multiply(xx, Lit.Float.NormDist.NEGONE), xx);
+            var exsq = Avx.Multiply(Avx.Multiply(xx, Float.NormDist.NEGONE), xx);
 
             Lit.Exp(ref exsq, ref exsq);
 
             yy = Avx.Multiply(yy, exsq); 
-            yy = Avx.Add(Lit.Float.NormDist.ONE, yy);
+            yy = Avx.Add(Float.NormDist.ONE, yy);
             y = Avx.Multiply(yy, sign);
         }
 
