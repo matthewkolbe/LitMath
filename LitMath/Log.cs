@@ -18,20 +18,6 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log2(ref Vector256<double> x, ref Vector256<double> y)
         {
-            // Checks if x is lower than zero. Stores the information for later to modify the result. If, for
-            // example, only x[1] < 0, then end[1] will be NaN, and the rest zero. We add this to the result at
-            // the end, which will force y[1] to be NaN.
-            var end = Avx.CompareLessThanOrEqual(x, Double.Log.ZERO);
-
-            // Handles positive infinity as a special case where log2(infinity)=infinity. Uses the same trick at
-            // the end.
-            end = Avx.Add(Avx.And(Avx.CompareEqual(x, Double.Log.POSITIVE_INFINITY), Double.Log.POSITIVE_INFINITY), end);
-
-            // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
-            // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
-            // it acts like the infinity adjustment.
-            end = Avx.Add(Avx.CompareNotEqual(x, x), end);
-
             // This algorithm uses the properties of floating point number to transform x into d*2^m, so log(x)
             // becomes log(d)+m, where d is in [1, 2]. Then it uses a series approximation of log to approximate 
             // the value in [1, 2]
@@ -49,7 +35,10 @@ namespace LitMath
 
             y = Avx.Add(Fma.MultiplyAdd(d, Double.Log.LOG2EF, Double.Log.LOG_ONE_POINT_FIVE), y);
             //y = Avx.Add(Avx.Add(Avx.Multiply(d, LitConstants.Double.Log.LOG2EF), LitConstants.Double.Log.LOG_ONE_POINT_FIVE), y);
-            y = Avx.Add(end, y);
+            y = Util.IfElse(Avx.CompareLessThan(x, Double.Log.ZERO), Double.Log.NAN, y);
+            y = Util.IfElse(Avx.CompareEqual(x, Double.Log.ZERO), Double.Log.NEGATIVE_INFINITY, y);
+            y = Util.IfElse(Avx.CompareEqual(x, Double.Log.POSITIVE_INFINITY), Double.Log.POSITIVE_INFINITY, y);
+            y = Util.IfElse(Avx.CompareNotEqual(x, x), Double.Log.NAN, y);
         }
 
 
@@ -199,8 +188,9 @@ namespace LitMath
         public static void Ln(ref double xx, ref double yy, int index)
         {
             var x = Util.LoadV256(ref xx, index);
-            Ln(ref x, ref x);
-            Util.StoreV256(ref yy, index, x);
+            var y = Vector256<double>.Zero;
+            Ln(ref x, ref y);
+            Util.StoreV256(ref yy, index, y);
         }
 
         /// <summary>
