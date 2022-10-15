@@ -32,7 +32,7 @@ namespace LitMathTests
             Span<double> b = stackalloc double[4];
 
             for (int i = 0; i < 4; ++i)
-                a[i] = -i;
+                a[i] = -i-1;
 
             Lit.Ln(ref a, ref b);
 
