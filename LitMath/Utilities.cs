@@ -339,26 +339,20 @@ namespace LitMath
         public static Vector256<double> IfLessThan(Vector256<double> x, Vector256<double> condition,
             Vector256<double> trueval, Vector256<double> falseval)
         {
-            return Avx.Add(
-                    Avx.And(Avx.CompareLessThan(x, condition), trueval),
-                    Avx.And(Avx.CompareGreaterThanOrEqual(x, condition), falseval));
+            return IfElse(Avx.CompareLessThan(x, condition), trueval, falseval);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> IfGreaterThan(Vector256<double> x, Vector256<double> condition,
              Vector256<double> trueval, Vector256<double> falseval)
         {
-            return Avx.Add(
-                    Avx.And(Avx.CompareGreaterThan(x, condition), trueval),
-                    Avx.And(Avx.CompareLessThanOrEqual(x, condition), falseval));
+            return IfElse(Avx.CompareGreaterThan(x, condition), trueval, falseval);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> IfElse(Vector256<double> mask, Vector256<double> trueval, Vector256<double> falseval)
         {
-            return Avx.Add(
-                    Avx.And(mask, trueval),
-                    Avx.AndNot(mask, falseval));
+            return Avx2.BlendVariable(falseval, trueval, mask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -421,17 +415,13 @@ namespace LitMath
         public static Vector256<float> IfLessThan(Vector256<float> x, Vector256<float> condition,
             Vector256<float> trueval, Vector256<float> falseval)
         {
-            return Avx.Add(
-                    Avx.And(Avx.CompareLessThan(x, condition), trueval),
-                    Avx.And(Avx.CompareGreaterThanOrEqual(x, condition), falseval));
+            return IfElse(Avx.CompareLessThan(x, condition), trueval, falseval);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<float> IfElse(Vector256<float> mask, Vector256<float> trueval, Vector256<float> falseval)
         {
-            return Avx.Add(
-                    Avx.And(mask, trueval),
-                    Avx.AndNot(mask, falseval));
+            return Avx2.BlendVariable(falseval, trueval, mask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -486,7 +476,7 @@ namespace LitMath
         public static Vector128<int> IfLessThan(Vector128<int> x, Vector128<int> condition,
             Vector128<int> trueval, Vector128<int> falseval)
         {
-            return Avx.Add(
+            return Avx.Or(
                 Avx.And(Avx.CompareLessThan(x, condition), trueval),
                 Avx.And(Avx.Or(Avx.CompareEqual(x, condition), Avx.CompareGreaterThan(x, condition)), falseval));
         }
@@ -494,9 +484,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector128<int> IfElse(Vector128<int> mask, Vector128<int> trueval, Vector128<int> falseval)
         {
-            return Avx2.Add(
-                    Avx2.And(mask, trueval),
-                    Avx2.AndNot(mask, falseval));
+            return Avx2.BlendVariable(falseval, trueval, mask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
