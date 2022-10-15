@@ -186,8 +186,9 @@ namespace LitMath
             // Instead of calculating e^x directly, calculate 2^(x / ln(2))
             var x = Util.LoadV256(ref xx, index);
             x = Avx.Multiply(x, Double.Exp.LOG2EF);
-            Two(ref x, ref x);
-            Util.StoreV256(ref yy, index, x);
+            var y = Vector256.Create(0.0);
+            Two(ref x, ref y);
+            Util.StoreV256(ref yy, index, y);
         }
 
 
@@ -229,8 +230,8 @@ namespace LitMath
         public static Vector256<double> Exp(Vector256<double> x)
         {
             var xx = Avx.Multiply(x, Double.Exp.LOG2EF);
-            Two(ref xx, ref xx);
-            return xx;
+            Two(ref xx, ref x);
+            return x;
         }
 
 
@@ -242,8 +243,9 @@ namespace LitMath
         public static Vector256<double> Exp(ref Vector256<double> x)
         {
             var xx = Avx.Multiply(x, Double.Exp.LOG2EF);
-            Two(ref xx, ref xx);
-            return xx;
+            var yy = Vector256.Create(0.0);
+            Two(ref xx, ref yy);
+            return yy;
         }
 
 
@@ -294,19 +296,9 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Two(ref Vector256<double> x, ref Vector256<double> y)
         {
-            // Checks if x is greater than the highest acceptable argument. Stores the information for later to
-            // modify the result. If, for example, only x[1] > EXP_HIGH, then end[1] will be infinity, and the rest
-            // zero. We add this to the result at the end, which will force y[1] to be infinity.
-            var end = Avx.And(Avx.CompareGreaterThanOrEqual(x, Double.Exp.HIGH), Double.Exp.POSITIVE_INFINITY);
 
             // Bound x by the maximum and minimum values this algorithm will handle.
             var xx = Avx.Max(Avx.Min(x, Double.Exp.THIGH), Double.Exp.TLOW);
-
-            // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
-            // value that doesn't equal itself. If any are NaN, we make the corresponding element of 'end' NaN, and
-            // it acts like the infinity adjustment.
-            end = Avx.Add(Avx.CompareNotEqual(x, x), end);
-
             var fx = Avx.RoundToNearestInteger(xx);
 
             // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
@@ -327,9 +319,15 @@ namespace LitMath
             // since the exponent of a double will never be more than a max int32, then from int to long.
             fx = Avx.Add(fx, Double.Exp.MAGIC_LONG_DOUBLE_ADD);
             fx = Avx2.ShiftLeftLogical(Avx2.Add(Vector256.AsInt64(fx), Lit.Long.ONE_THOUSAND_TWENTY_THREE), 52).AsDouble();
+            y = Avx.Multiply(fx, y);
 
-            // Combines the two exponentials and the end adjustments into the result.
-            y = Fma.MultiplyAdd(y, fx, end);
+            // Checks if x is greater than the highest acceptable argument, and sets to infinity if so.
+            y = Util.IfElse(Avx.CompareGreaterThanOrEqual(x, Double.Exp.THIGH), Double.Exp.POSITIVE_INFINITY, y);
+
+            // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
+            // value that doesn't equal itself. 
+            y = Util.IfElse(Avx.CompareNotEqual(x, x), Double.Exp.NAN, y);
+
         }
 
 
