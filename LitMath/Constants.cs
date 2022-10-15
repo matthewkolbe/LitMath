@@ -21,6 +21,7 @@ namespace LitMath
                 public static readonly Vector256<double> INVE = Vector256.Create(0.367879441171442321595523770161);
                 public static readonly Vector256<double> THIGH = Vector256.Create(709.0 * 1.4426950408889634);
                 public static readonly Vector256<double> TLOW = Vector256.Create(-709.0 * 1.4426950408889634);
+                public static readonly Vector256<double> NAN = Vector256.Create(double.NaN);
                 public static readonly Vector256<double> T0 = Vector256.Create(1.0);
                 public static readonly Vector256<double> T1 = Vector256.Create(0.6931471805599453087156032);
                 public static readonly Vector256<double> T2 = Vector256.Create(0.240226506959101195979507231);
@@ -105,7 +106,9 @@ namespace LitMath
                 public static readonly Vector256<double> TWO_THIRDS = Vector256.Create(2.0 / 3.0);
                 public static readonly Vector256<double> LOG_ONE_POINT_FIVE = Vector256.Create(0.58496250072115619);
                 public static readonly Vector256<double> ZERO = Vector256<double>.Zero;
+                public static readonly Vector256<double> NAN = Vector256.Create(double.NaN);
                 public static readonly Vector256<double> POSITIVE_INFINITY = Vector256.Create(double.PositiveInfinity);
+                public static readonly Vector256<double> NEGATIVE_INFINITY = Vector256.Create(double.PositiveInfinity);
                 public static readonly Vector256<double> TWO = Vector256.Create(2.0);
                 public static readonly Vector256<double> ONE_THIRD = Vector256.Create(1.0 / 3.0);
                 public static readonly Vector256<double> ONE_FIFTH = Vector256.Create(1.0 / 5.0);
