@@ -100,6 +100,18 @@ namespace LitMath
             FusedMultiplyAdd(ref vv, mult, add, ref rr, r.Length);
         }
 
+        /// <summary>
+        /// Does an fused multiply add between a span and two constants
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FusedMultiplyAdd(ref Span<double> v, ref Span<double> mult, ref Span<double> add, ref Span<double> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var mm = ref MemoryMarshal.GetReference(mult);
+            ref var aa = ref MemoryMarshal.GetReference(add);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            FusedMultiplyAdd(ref vv, ref mm, ref aa, ref rr, r.Length);
+        }
 
         /// <summary>
         /// Does an fused multiply add between a span and two constants
@@ -352,7 +364,6 @@ namespace LitMath
         /// Fused multiply adds every element of an array by a constant
         /// </summary>
         /// <param name="v">Input</param>
-        /// <param name="constant"></param>
         /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
         /// <param name="n">Size of the array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -383,6 +394,40 @@ namespace LitMath
             // clean up the residual
             for (; i < n; i++)
                 Unsafe.Add(ref r, i) = Unsafe.Add(ref v, i) * mult + add;
+        }
+
+        /// <summary>
+        /// Fused multiply adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FusedMultiplyAdd(ref double v, ref double mult, ref double add, ref double r, int n)
+        {
+            int i = 0;
+
+            // Unroll the loop if n > 16
+            while (i < (n - 15))
+            {
+                Util.StoreV256(ref r, i, Fma.MultiplyAdd(Util.LoadV256(ref v, i), Util.LoadV256(ref mult, i), Util.LoadV256(ref add, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Fma.MultiplyAdd(Util.LoadV256(ref v, i), Util.LoadV256(ref mult, i), Util.LoadV256(ref add, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Fma.MultiplyAdd(Util.LoadV256(ref v, i), Util.LoadV256(ref mult, i), Util.LoadV256(ref add, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Fma.MultiplyAdd(Util.LoadV256(ref v, i), Util.LoadV256(ref mult, i), Util.LoadV256(ref add, i)));
+                i += 4;
+            }
+
+            // Loop through the AVX instructions
+            for (; i < (n - 3); i += 4)
+                Util.StoreV256(ref r, i, Fma.MultiplyAdd(Util.LoadV256(ref v, i), Util.LoadV256(ref mult, i), Util.LoadV256(ref add, i)));
+
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Unsafe.Add(ref v, i) * Unsafe.Add(ref mult, i) + Unsafe.Add(ref add, i);
         }
 
         /// <summary>
