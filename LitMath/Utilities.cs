@@ -60,6 +60,16 @@ namespace LitMath
         }
 
 
+        /// <summary>
+        /// Does an absolute value of each element of a Span
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Abs(ref Span<double> v, ref Span<double> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Abs(ref vv, ref rr, r.Length);
+        }
 
         /// <summary>
         /// Copies data from one n-sized array to another
@@ -285,6 +295,37 @@ namespace LitMath
                 rr += System.Math.Abs(v[i]);
 
             return rr;
+        }
+
+        /// <summary>
+        /// Returns the abolute value of each element of an array
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Abs(ref double v, ref double r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 15))
+            {
+                Util.StoreV256(ref r, i, Avx.AndNot(Util.LoadV256(ref v, i), Lit.Double.Util.NEGATIVE_ZERO));
+                i += 4;
+                Util.StoreV256(ref r, i, Avx.AndNot(Util.LoadV256(ref v, i), Lit.Double.Util.NEGATIVE_ZERO));
+                i += 4;
+                Util.StoreV256(ref r, i, Avx.AndNot(Util.LoadV256(ref v, i), Lit.Double.Util.NEGATIVE_ZERO));
+                i += 4;
+                Util.StoreV256(ref r, i, Avx.AndNot(Util.LoadV256(ref v, i), Lit.Double.Util.NEGATIVE_ZERO));
+                i += 4;
+            }
+
+            for (; i < (n - 3); i += 4)
+                Util.StoreV256(ref r, i, Avx.AndNot(Util.LoadV256(ref v, i), Lit.Double.Util.NEGATIVE_ZERO));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Math.Abs(Unsafe.Add(ref v, i));
         }
 
 

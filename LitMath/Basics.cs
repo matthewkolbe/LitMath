@@ -137,6 +137,7 @@ namespace LitMath
             return Dot(ref a, ref b);
         }
 
+
         /// <summary>
         /// Does a dot product between two Span<Vector256<double>>. This is a little different from the other
         /// dot products in this library, where instead of chunking a single array to make a dot product faster
@@ -784,7 +785,6 @@ namespace LitMath
 
             return r;
         }
-
 
 
         /// <summary>

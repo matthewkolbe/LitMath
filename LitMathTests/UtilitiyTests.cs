@@ -178,6 +178,7 @@ namespace LitMathTests
             Assert.AreEqual(b.GetElement(2), -3.0);
             Assert.AreEqual(b.GetElement(3), -30.0);
         }
+
     }
 
 }
