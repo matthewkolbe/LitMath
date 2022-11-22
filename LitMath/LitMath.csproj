@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/matthewkolbe/LitMath</PackageProjectUrl>
     <Copyright>Matthew Kolbe</Copyright>
     <RepositoryUrl>https://github.com/matthewkolbe/LitMath</RepositoryUrl>
-    <Version>0.5.1</Version>
+    <Version>0.5.2</Version>
     <Authors>Matthew Kolbe</Authors>
     <PackageId>Kolbe.$(AssemblyName)</PackageId>
     <Description>A collection of AVX-256 accelerated mathematical functions for .NET</Description>
@@ -19,13 +19,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>MAJOR BREAKING CHANGES. 
-
-I've eliminated all pointer interfaces and usage of raw pointers.
-
-I've changed the class names from Lit[thing] (e.g. LitExp) to just a large shared class called Lit.
-
-Polynomial changed its name as well.</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
