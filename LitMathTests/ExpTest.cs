@@ -19,7 +19,7 @@ namespace LitMathTests
             Lit.Exp(ref a, ref b);
 
             for (int i = 0; i < 1000; ++i)
-                Assert.AreEqual(Math.Exp(a[i]), b[i], 3e-16 * b[i]);
+                Assert.AreEqual(Math.Exp(a[i]), b[i], 4e-16 * b[i]);
         }
 
         [Test]
