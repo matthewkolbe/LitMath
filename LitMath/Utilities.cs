@@ -107,6 +107,18 @@ namespace LitMath
         }
 
         /// <summary>
+        /// Calculates the sign of the span element
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Sign(ref Span<int> a, ref Span<int> r)
+        {
+            ref var aa = ref MemoryMarshal.GetReference(a);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Sign(ref aa, ref rr, r.Length);
+        }
+
+
+        /// <summary>
         /// Copies data from one n-sized array to another
         /// </summary>
         /// <param name="from"></param>
@@ -448,7 +460,7 @@ namespace LitMath
                 i += 8;
             }
 
-            for (; i < (n - 3); i += 8)
+            for (; i < (n - 7); i += 8)
                 Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
 
             // clean up the residual
@@ -479,12 +491,43 @@ namespace LitMath
                 i += 8;
             }
 
-            for (; i < (n - 3); i += 8)
+            for (; i < (n - 7); i += 8)
                 Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
 
             // clean up the residual
             for (; i < n; i++)
                 Unsafe.Add(ref r, i) = Math.Max(Unsafe.Add(ref a, i), Unsafe.Add(ref b, i));
+        }
+
+        /// <summary>
+        /// Returns the sign of the array element
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Sign(ref int a, ref int r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Util.StoreV256(ref r, i, Sign(Util.LoadV256(ref a, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Sign(Util.LoadV256(ref a, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Sign(Util.LoadV256(ref a, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Sign(Util.LoadV256(ref a, i)));
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                Util.StoreV256(ref r, i, Sign(Util.LoadV256(ref a, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Math.Sign(Unsafe.Add(ref a, i));
         }
 
 
@@ -525,24 +568,18 @@ namespace LitMath
         public static void ConvertDoubleToInt(ref Vector256<double> x, ref Vector128<int> y)
         {
             y = Avx.ConvertToVector128Int32WithTruncation(x);
-            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
-            //y = Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector128<int> ConvertDoubleToInt(ref Vector256<double> x)
         {
             return Avx.ConvertToVector128Int32WithTruncation(x);
-            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
-            //return Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector128<int> ConvertDoubleToInt(Vector256<double> x)
         {
             return Avx.ConvertToVector128Int32WithTruncation(x);
-            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
-            //return Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
         }
 
 
@@ -615,6 +652,20 @@ namespace LitMath
             return IfElse(Avx.CompareGreaterThanOrEqual(x, Lit.Double.Util.ZERO),
                 Lit.Double.Util.ONE,
                 Lit.Double.Util.NEGONE);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<int> Sign(Vector256<int> x)
+        {
+            var y = Avx2.MultiplyLow(Avx2.Add(Avx2.MultiplyLow(
+                Avx2.CompareGreaterThan(x, Lit.Int.NEGONE),
+                Lit.Int.TWO),
+                Lit.Int.ONE),
+                Lit.Int.NEGONE);
+
+            var z = Avx2.Add(Avx2.CompareEqual(x, Lit.Int.ZERO), Lit.Int.ONE);
+
+            return Avx2.MultiplyLow(y, z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

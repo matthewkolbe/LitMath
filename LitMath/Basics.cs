@@ -130,6 +130,21 @@ namespace LitMath
             Multiply(ref xx, ref yy, ref rr, r.Length);
         }
 
+        /// <summary>
+        /// Does an elementwise multiply between two Spans
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        /// <param name="r">The return value (can be the same as x or y if you so desire this to happen in-place)</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Multiply(ref Span<int> x, ref Span<int> y, ref Span<int> r)
+        {
+            ref var xx = ref MemoryMarshal.GetReference(x);
+            ref var yy = ref MemoryMarshal.GetReference(y);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Multiply(ref xx, ref yy, ref rr, r.Length);
+        }
+
 
         /// <summary>
         /// Does an fused multiply add between a span and two constants
@@ -711,6 +726,41 @@ namespace LitMath
                 Unsafe.Add(ref r, i) = Unsafe.Add(ref x, i) * Unsafe.Add(ref y, i);
         }
 
+        /// <summary>
+        /// Does an elementwise multiply between two arrays
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        /// <param name="r">The return value (can be the same as x or y if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Multiply(ref int x, ref int y, ref int r, int n)
+        {
+            const int VSZ = 8;
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Util.StoreV256(ref r, i, Avx2.MultiplyLow(Util.LoadV256(ref x, i), Util.LoadV256(ref y, i)));
+                i += VSZ;
+
+                Util.StoreV256(ref r, i, Avx2.MultiplyLow(Util.LoadV256(ref x, i), Util.LoadV256(ref y, i)));
+                i += VSZ;
+
+                Util.StoreV256(ref r, i, Avx2.MultiplyLow(Util.LoadV256(ref x, i), Util.LoadV256(ref y, i)));
+                i += VSZ;
+
+                Util.StoreV256(ref r, i, Avx2.MultiplyLow(Util.LoadV256(ref x, i), Util.LoadV256(ref y, i)));
+                i += VSZ;
+            }
+
+            for (; i < (n - 7); i += VSZ)
+                Util.StoreV256(ref r, i, Avx2.MultiplyLow(Util.LoadV256(ref x, i), Util.LoadV256(ref y, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Unsafe.Add(ref x, i) * Unsafe.Add(ref y, i);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Dot(ref Vector256<double>[] a, ref Vector256<double>[] b, ref Vector256<double> r, int n)
