@@ -180,6 +180,26 @@ namespace LitMathTests
         }
 
         [Test]
+        public unsafe void SignIntTest()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<int> a = stackalloc int[n];
+                Span<int> rr = stackalloc int[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                    a[i] = (int)(100 * (r.NextDouble() - 0.5));
+
+
+                Util.Sign(ref a, ref rr);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(rr[i], Math.Sign(a[i]));
+            }
+        }
+
+        [Test]
         public unsafe void ConvertLongToDoubleTest()
         {
             var a = Vector256.Create(0L, -50L, 256L, 1000000L);
