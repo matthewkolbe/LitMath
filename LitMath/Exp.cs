@@ -303,17 +303,18 @@ namespace LitMath
 
             // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
             xx = Avx.Subtract(xx, fx);
-            y = Fma.MultiplyAdd(Double.Exp.T11, xx, Double.Exp.T10);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T9);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T8);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T7);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T6);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T5);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T4);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T3);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T2);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T1);
-            y = Fma.MultiplyAdd(y, xx, Double.Exp.T0);
+            var xsq = Avx.Multiply(xx, xx);
+            y = Fma.MultiplyAdd(Double.Exp.T11, xsq, Double.Exp.T9);
+            var yo = Fma.MultiplyAdd(Double.Exp.T10, xsq, Double.Exp.T8);
+            y = Fma.MultiplyAdd(y, xsq, Double.Exp.T7);
+            yo = Fma.MultiplyAdd(yo, xsq, Double.Exp.T6);
+            y = Fma.MultiplyAdd(y, xsq, Double.Exp.T5);
+            yo = Fma.MultiplyAdd(yo, xsq, Double.Exp.T4);
+            y = Fma.MultiplyAdd(y, xsq, Double.Exp.T3);
+            yo = Fma.MultiplyAdd(yo, xsq, Double.Exp.T2);
+            y = Fma.MultiplyAdd(y, xsq, Double.Exp.T1);
+            yo = Fma.MultiplyAdd(yo, xsq, Double.Exp.T0);
+            y = Fma.MultiplyAdd(y, xx, yo);
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
             // since the exponent of a double will never be more than a max int32, then from int to long.

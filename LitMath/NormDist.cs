@@ -357,7 +357,6 @@ namespace LitMath
             y = Avx.Multiply(y, Float.NormDist.HALF);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(ref Vector256<double> x, ref Vector256<double> y)
         {
@@ -369,18 +368,19 @@ namespace LitMath
             var t = Fma.MultiplyAdd(Double.NormDist.ONE_OVER_PI, xx, Double.NormDist.ONE);
             t = Avx.Divide(Double.NormDist.ONE, t);
 
-            var yy = Fma.MultiplyAdd(Double.NormDist.E12, t, Double.NormDist.E11);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E10);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E9);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E8);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E7);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E6);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E5);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E4);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E3);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E2);
-            yy = Fma.MultiplyAdd(yy, t, Double.NormDist.E1);
-            yy = Avx.Multiply(yy, t);
+            var tsq = Avx.Multiply(t, t);
+            var yy = Fma.MultiplyAdd(Double.NormDist.E12, tsq, Double.NormDist.E10);
+            y = Fma.MultiplyAdd(Double.NormDist.E11, tsq, Double.NormDist.E9);
+            yy = Fma.MultiplyAdd(yy, tsq, Double.NormDist.E8);
+            y = Fma.MultiplyAdd(y, tsq, Double.NormDist.E7);
+            yy = Fma.MultiplyAdd(yy, tsq, Double.NormDist.E6);
+            y = Fma.MultiplyAdd(y, tsq, Double.NormDist.E5);
+            yy = Fma.MultiplyAdd(yy, tsq, Double.NormDist.E4);
+            y = Fma.MultiplyAdd(y, tsq, Double.NormDist.E3);
+            yy = Fma.MultiplyAdd(yy, tsq, Double.NormDist.E2);
+            y = Fma.MultiplyAdd(y, tsq, Double.NormDist.E1);
+            yy = Avx.Multiply(yy, tsq);
+            yy = Fma.MultiplyAdd(y, t, yy);
 
             var exsq = Avx.Multiply(Avx.Multiply(xx, Double.NormDist.NEGONE), xx);
 
