@@ -40,6 +40,48 @@ namespace LitMath
             Multiply(ref vv, consant, ref rr, r.Length);
         }
 
+        /// <summary>
+        /// Adds every element of a Span by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(ref Span<float> v, float consant, ref Span<float> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Add(ref vv, consant, ref rr, r.Length);
+        }
+
+        /// <summary>
+        /// Adds every element of a Span by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(ref Span<double> v, double consant, ref Span<double> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Add(ref vv, consant, ref rr, r.Length);
+        }
+
+
+        /// <summary>
+        /// Adds every element of a Span by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(ref Span<int> v, int consant, ref Span<int> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Add(ref vv, consant, ref rr, r.Length);
+        }
 
         /// <summary>
         /// Sums two Spans
@@ -354,6 +396,39 @@ namespace LitMath
 
             for (; i < (n - 7); i += 8)
                 Util.StoreV256(ref r, i, Avx.Add(Util.LoadV256(ref v, i), c));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Unsafe.Add(ref v, i) + constant;
+        }
+
+        /// <summary>
+        /// Adds every element of an array by a constant
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="constant"></param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(ref int v, int constant, ref int r, int n)
+        {
+            var c = Vector256.Create(constant);
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Util.StoreV256(ref r, i, Avx2.Add(Util.LoadV256(ref v, i), c)); ;
+                i += 8;
+                Util.StoreV256(ref r, i, Avx2.Add(Util.LoadV256(ref v, i), c));
+                i += 8;
+                Util.StoreV256(ref r, i, Avx2.Add(Util.LoadV256(ref v, i), c));
+                i += 8;
+                Util.StoreV256(ref r, i, Avx2.Add(Util.LoadV256(ref v, i), c));
+                i += 8;
+            }
+
+            for (; i < (n - 7); i += 8)
+                Util.StoreV256(ref r, i, Avx2.Add(Util.LoadV256(ref v, i), c));
 
             // clean up the residual
             for (; i < n; i++)
