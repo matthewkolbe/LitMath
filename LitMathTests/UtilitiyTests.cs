@@ -115,6 +115,71 @@ namespace LitMathTests
         }
 
         [Test]
+        public unsafe void ConvertDoubleToIntTest()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<double> a = stackalloc double[n];
+                Span<int> b = stackalloc int[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                    a[i] = 100*(r.NextDouble() - 0.5);
+
+                Util.ConvertDoubleToInt(ref a, ref b);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual((int)a[i], b[i]);
+            }
+        }
+
+        [Test]
+        public unsafe void MaxIntTest()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<int> a = stackalloc int[n];
+                Span<int> b = stackalloc int[n];
+                Span<int> rr = stackalloc int[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                {
+                    a[i] = (int)(100 * (r.NextDouble() - 0.5));
+                    b[i] = (int)(100 * (r.NextDouble() - 0.5));
+                }
+
+                Util.Max(ref a, ref b, ref rr);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(rr[i], Math.Max(a[i], b[i]));
+            }
+        }
+
+        [Test]
+        public unsafe void MinIntTest()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<int> a = stackalloc int[n];
+                Span<int> b = stackalloc int[n];
+                Span<int> rr = stackalloc int[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                {
+                    a[i] = (int)(100 * (r.NextDouble() - 0.5));
+                    b[i] = (int)(100 * (r.NextDouble() - 0.5));
+                }
+
+                Util.Min(ref a, ref b, ref rr);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(rr[i], Math.Min(a[i], b[i]));
+            }
+        }
+
+        [Test]
         public unsafe void ConvertLongToDoubleTest()
         {
             var a = Vector256.Create(0L, -50L, 256L, 1000000L);

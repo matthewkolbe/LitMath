@@ -72,6 +72,41 @@ namespace LitMath
         }
 
         /// <summary>
+        /// Converts doubles to ints
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConvertDoubleToInt(ref Span<double> v, ref Span<int> r)
+        {
+            ref var vv = ref MemoryMarshal.GetReference(v);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            ConvertDoubleToInt(ref vv, ref rr, r.Length);
+        }
+
+        /// <summary>
+        /// Calculates the max between indicies of two Spans
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref Span<int> a, ref Span<int> b, ref Span<int> r)
+        {
+            ref var aa = ref MemoryMarshal.GetReference(a);
+            ref var bb = ref MemoryMarshal.GetReference(b);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Max(ref aa, ref bb, ref rr, r.Length);
+        }
+
+        /// <summary>
+        /// Calculates the min between indicies of two Spans
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Min(ref Span<int> a, ref Span<int> b, ref Span<int> r)
+        {
+            ref var aa = ref MemoryMarshal.GetReference(a);
+            ref var bb = ref MemoryMarshal.GetReference(b);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Min(ref aa, ref bb, ref rr, r.Length);
+        }
+
+        /// <summary>
         /// Copies data from one n-sized array to another
         /// </summary>
         /// <param name="from"></param>
@@ -298,7 +333,7 @@ namespace LitMath
         }
 
         /// <summary>
-        /// Returns the abolute value of each element of an array
+        /// Returns the absolute value of each element of an array
         /// </summary>
         /// <param name="v">Input</param>
         /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
@@ -326,6 +361,130 @@ namespace LitMath
             // clean up the residual
             for (; i < n; i++)
                 Unsafe.Add(ref r, i) = Math.Abs(Unsafe.Add(ref v, i));
+        }
+
+        /// <summary>
+        /// Returns the casted int of a double
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConvertDoubleToInt(ref double v, ref int r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 15))
+            {
+                Util.StoreV128(ref r, i, ConvertDoubleToInt(Util.LoadV256(ref v, i)));
+                i += 4;
+                Util.StoreV128(ref r, i, ConvertDoubleToInt(Util.LoadV256(ref v, i)));
+                i += 4;
+                Util.StoreV128(ref r, i, ConvertDoubleToInt(Util.LoadV256(ref v, i)));
+                i += 4;
+                Util.StoreV128(ref r, i, ConvertDoubleToInt(Util.LoadV256(ref v, i)));
+                i += 4;
+            }
+
+            for (; i < (n - 3); i += 4)
+                Util.StoreV128(ref r, i, ConvertDoubleToInt(Util.LoadV256(ref v, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = (int)(Unsafe.Add(ref v, i));
+        }
+
+        /// <summary>
+        /// Returns the casted int of a double
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref double a, ref double b, ref double r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 15))
+            {
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 4;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 4;
+            }
+
+            for (; i < (n - 3); i += 4)
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Math.Max(Unsafe.Add(ref a, i), Unsafe.Add(ref b, i));
+        }
+
+        /// <summary>
+        /// Returns the min of two arrays
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Min(ref int a, ref int b, ref int r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+            }
+
+            for (; i < (n - 3); i += 8)
+                Util.StoreV256(ref r, i, Min(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Math.Min(Unsafe.Add(ref a, i), Unsafe.Add(ref b, i));
+        }
+
+        /// <summary>
+        /// Returns the min of two arrays
+        /// </summary>
+        /// <param name="v">Input</param>
+        /// <param name="r">The return value</param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Max(ref int a, ref int b, ref int r, int n)
+        {
+            int i = 0;
+
+            while (i < (n - 31))
+            {
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+                i += 8;
+            }
+
+            for (; i < (n - 3); i += 8)
+                Util.StoreV256(ref r, i, Max(Util.LoadV256(ref a, i), Util.LoadV256(ref b, i)));
+
+            // clean up the residual
+            for (; i < n; i++)
+                Unsafe.Add(ref r, i) = Math.Max(Unsafe.Add(ref a, i), Unsafe.Add(ref b, i));
         }
 
 
@@ -362,6 +521,30 @@ namespace LitMath
             return Avx.Subtract(Vector256.AsDouble(Avx2.Add(x, Lit.Long.MAGIC_LONG_DOUBLE_ADD)), Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConvertDoubleToInt(ref Vector256<double> x, ref Vector128<int> y)
+        {
+            y = Avx.ConvertToVector128Int32WithTruncation(x);
+            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            //y = Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> ConvertDoubleToInt(ref Vector256<double> x)
+        {
+            return Avx.ConvertToVector128Int32WithTruncation(x);
+            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            //return Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<int> ConvertDoubleToInt(Vector256<double> x)
+        {
+            return Avx.ConvertToVector128Int32WithTruncation(x);
+            //var xx = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            //return Avx.ExtractVector128(Vector256.AsInt32(xx), 0);
+        }
+
 
         /// <summary>
         /// Converts x to 2^x
@@ -369,7 +552,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ConvertXtoPower(ref Vector256<double> x, ref Vector256<double> y)
         {
-            y = Avx2.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
+            y = Avx.Add(x, Lit.Double.Util.MAGIC_LONG_DOUBLE_ADD);
             var z = Vector256.AsInt64(y);
             z = Avx2.Add(z, Lit.Long.ONE_THOUSAND_TWENTY_THREE);
             z = Avx2.ShiftLeftLogical(z, 52);
@@ -392,6 +575,12 @@ namespace LitMath
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> IfElse(Vector256<double> mask, Vector256<double> trueval, Vector256<double> falseval)
+        {
+            return Avx2.BlendVariable(falseval, trueval, mask);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<int> IfElse(Vector256<int> mask, Vector256<int> trueval, Vector256<int> falseval)
         {
             return Avx2.BlendVariable(falseval, trueval, mask);
         }
@@ -484,9 +673,21 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector256<float> Min(Vector256<float> x, Vector256<float> min)
+        public static Vector256<float> Min(Vector256<float> x, Vector256<float> y)
         {
-            return IfElse(Avx.CompareLessThanOrEqual(x, min), x, min);
+            return IfElse(Avx.CompareLessThanOrEqual(x, y), x, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<int> Max(Vector256<int> x, Vector256<int> y)
+        {
+            return IfElse(Avx2.CompareGreaterThan(x, y), x, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<int> Min(Vector256<int> x, Vector256<int> y)
+        {
+            return IfElse(Avx2.CompareGreaterThan(x, y), y, x);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -529,21 +730,21 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Max(ref Vector128<int> x, Vector128<int> max)
+        public static void Max(ref Vector128<int> x, Vector128<int> y)
         {
-            x = IfElse(Avx2.CompareGreaterThan(x, max), x, max);
+            x = IfElse(Avx2.CompareGreaterThan(x, y), x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Min(ref Vector128<int> x, Vector128<int> min)
+        public static void Min(ref Vector128<int> x, Vector128<int> y)
         {
-            x = IfElse(Avx.CompareLessThan(x, min), x, min);
+            x = IfElse(Avx.CompareLessThan(x, y), x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector128<int> Max(Vector128<int> x, Vector128<int> max)
+        public static Vector128<int> Max(Vector128<int> x, Vector128<int> y)
         {
-            return IfElse(Avx2.CompareGreaterThan(x, max), x, max);
+            return IfElse(Avx2.CompareGreaterThan(x, y), x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -562,6 +763,18 @@ namespace LitMath
         public static void StoreV256<T>(ref T ptr, int offset, Vector256<T> value) where T : unmanaged
         {
             Unsafe.As<T, Vector256<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector128<T> LoadV128<T>(ref T ptr, int offset) where T : unmanaged
+        {
+            return Unsafe.As<T, Vector128<T>>(ref Unsafe.Add(ref ptr, offset));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreV128<T>(ref T ptr, int offset, Vector128<T> value) where T : unmanaged
+        {
+            Unsafe.As<T, Vector128<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
         }
     }
 }
