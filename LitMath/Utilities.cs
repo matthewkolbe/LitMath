@@ -576,7 +576,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> IfElse(Vector256<double> mask, Vector256<double> trueval, Vector256<double> falseval)
         {
-            return Avx2.BlendVariable(falseval, trueval, mask);
+            return Avx.BlendVariable(falseval, trueval, mask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
