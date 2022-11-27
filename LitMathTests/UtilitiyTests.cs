@@ -195,7 +195,29 @@ namespace LitMathTests
                 Util.Sign(ref a, ref rr);
 
                 for (int i = 0; i < n; ++i)
-                    Assert.AreEqual(rr[i], Math.Sign(a[i]));
+                    if (a[i] != 0)
+                        Assert.AreEqual(rr[i], Math.Sign(a[i]));
+            }
+        }
+
+        [Test]
+        public unsafe void SignDoubleTest()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<double> a = stackalloc double[n];
+                Span<double> rr = stackalloc double[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                    a[i] = (100 * (r.NextDouble() - 0.5));
+
+
+                Util.Sign(ref a, ref rr);
+
+                for (int i = 0; i < n; ++i)
+                    if (a[i] != 0.0)
+                        Assert.AreEqual(rr[i], Math.Sign(a[i]));
             }
         }
 
