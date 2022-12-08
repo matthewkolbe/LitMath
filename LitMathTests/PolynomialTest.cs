@@ -23,7 +23,7 @@ namespace LitMathTests
             for (int i = 0; i < m; i++)
                 p[i] = r.NextDouble();
 
-            Lit.PolynomialValue(ref x, ref p, ref y);
+            Lit.PolynomialValue(in x, in p, ref y);
 
             for (int i = 0; i < n; ++i)
             {
@@ -52,7 +52,7 @@ namespace LitMathTests
                 pdub[i] = p[i];
             }
 
-            Lit.PolynomialValue(ref x, ref p, ref y);
+            Lit.PolynomialValue(in x, in p, ref y);
 
             for (int i = 0; i < n; ++i)
             {

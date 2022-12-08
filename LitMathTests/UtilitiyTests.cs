@@ -10,15 +10,22 @@ namespace LitMathTests
     {
 
         [Test]
-        public unsafe void AbsTest()
+        public unsafe void AbsDoubleTest()
         {
-            var a = Vector256.Create(1.0, 0.0, -3.14, double.NegativeInfinity);
-            var b = Util.Abs(ref a);
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
+                var r = new Random(10);
 
-            Assert.AreEqual(b.GetElement(0), Math.Abs(a.GetElement(0)));
-            Assert.AreEqual(b.GetElement(1), Math.Abs(a.GetElement(1)));
-            Assert.AreEqual(b.GetElement(2), Math.Abs(a.GetElement(2)));
-            Assert.AreEqual(b.GetElement(3), Math.Abs(a.GetElement(3)));
+                for (int i = 0; i < n; ++i)
+                    a[i] = r.NextDouble() - 0.5;
+
+                Util.Abs(in a, ref b);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(Math.Abs(a[i]), b[i]);
+            }
         }
 
         [Test]
@@ -36,7 +43,7 @@ namespace LitMathTests
                     b[i] = Math.Abs(a[i]);
                 }
 
-                var result = Util.AbsSum(ref a);
+                var result = Util.AbsSum(in a);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, b.Sum(), 1e-8);
@@ -69,7 +76,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = r.NextDouble() - 0.5;
 
-                Util.Copy(ref a, ref b);
+                Util.Copy(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -88,7 +95,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = i;
 
-                Util.Copy(ref a, ref b);
+                Util.Copy(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -107,7 +114,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)(r.NextDouble() - 0.5);
 
-                Util.Copy(ref a, ref b);
+                Util.Copy(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(a[i], b[i]);
@@ -126,7 +133,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = 100*(r.NextDouble() - 0.5);
 
-                Util.ConvertDoubleToInt(ref a, ref b);
+                Util.ConvertDoubleToInt(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual((int)a[i], b[i]);
@@ -149,7 +156,7 @@ namespace LitMathTests
                     b[i] = (int)(100 * (r.NextDouble() - 0.5));
                 }
 
-                Util.Max(ref a, ref b, ref rr);
+                Util.Max(in a, in b, ref rr);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(rr[i], Math.Max(a[i], b[i]));
@@ -172,7 +179,7 @@ namespace LitMathTests
                     b[i] = (int)(100 * (r.NextDouble() - 0.5));
                 }
 
-                Util.Min(ref a, ref b, ref rr);
+                Util.Min(in a, in b, ref rr);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(rr[i], Math.Min(a[i], b[i]));
@@ -192,7 +199,7 @@ namespace LitMathTests
                     a[i] = (int)(100 * (r.NextDouble() - 0.5));
 
 
-                Util.Sign(ref a, ref rr);
+                Util.Sign(in a, ref rr);
 
                 for (int i = 0; i < n; ++i)
                     if (a[i] != 0)
@@ -213,7 +220,7 @@ namespace LitMathTests
                     a[i] = (100 * (r.NextDouble() - 0.5));
 
 
-                Util.Sign(ref a, ref rr);
+                Util.Sign(in a, ref rr);
 
                 for (int i = 0; i < n; ++i)
                     if (a[i] != 0.0)
@@ -226,7 +233,7 @@ namespace LitMathTests
         {
             var a = Vector256.Create(0L, -50L, 256L, 1000000L);
             var b = Vector256.Create(0.0);
-            Util.ConvertLongToDouble(ref a, ref b);
+            Util.ConvertLongToDouble(in a, ref b);
 
             Assert.AreEqual(b.GetElement(0), 0.0);
             Assert.AreEqual(b.GetElement(1), -50.0);

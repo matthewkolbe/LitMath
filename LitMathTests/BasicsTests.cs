@@ -22,7 +22,7 @@ namespace LitMathTests
                     b[i] = 1+i;
                 }
 
-                var result = Lit.Dot(ref a, ref b);
+                var result = Lit.Dot(in a, in b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, n*(n+1)*0.5, 1e-8);
@@ -66,7 +66,7 @@ namespace LitMathTests
                     b[i] = 1 + i;
                 }
 
-                var result = Lit.Dot(ref a, ref b);
+                var result = Lit.Dot(in a, in b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(result, n * (n + 1) * 0.5f, 1e-8);
@@ -88,7 +88,7 @@ namespace LitMathTests
                     b[i] = 1 + i;
                 }
 
-                Lit.Multiply(ref a, ref b, ref r);
+                Lit.Multiply(in a, in b, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i + 1, 1e-8);
@@ -110,7 +110,7 @@ namespace LitMathTests
                     b[i] = 1.0;
                 }
 
-                Lit.Subtract(ref a, ref b, ref r);
+                Lit.Subtract(in a, in b, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i, 1e-8);
@@ -128,7 +128,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = 1 + i;
 
-                Lit.Subtract(ref a[0], 1.0, ref r[0], n);
+                Lit.Subtract(in a[0], 1.0, ref r[0], n);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], i, 1e-8);
@@ -147,7 +147,7 @@ namespace LitMathTests
                     a[i] = i;
 
 
-                Lit.Multiply(ref a, 2f, ref r);
+                Lit.Multiply(in a, 2f, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2f*i, 1e-8f);
@@ -166,7 +166,7 @@ namespace LitMathTests
                     a[i] = i;
 
 
-                Lit.Multiply(ref a, 2, ref r);
+                Lit.Multiply(in a, 2, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i, 1e-8);
@@ -185,7 +185,7 @@ namespace LitMathTests
                     a[i] = i;
 
 
-                Lit.FusedMultiplyAdd(ref a, 2, 1, ref r);
+                Lit.FusedMultiplyAdd(in a, 2, 1, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i + 1, 1e-8);
@@ -204,7 +204,7 @@ namespace LitMathTests
                     a[i] = i;
 
 
-                Lit.FusedMultiplyAdd(ref a, 2, 1, ref r);
+                Lit.FusedMultiplyAdd(in a, 2, 1, ref r);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i + 1, 1e-8);

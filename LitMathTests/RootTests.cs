@@ -16,7 +16,7 @@ namespace LitMathTests
                     a[i] = (i + 1) + r.NextDouble();
 
 
-                Lit.Sqrt(ref a, ref b);
+                Lit.Sqrt(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Sqrt(a[i]) / b[i], 1e-10);
@@ -36,7 +36,7 @@ namespace LitMathTests
                     a[i] = (float)((i + 1) + r.NextDouble());
 
 
-                Lit.Sqrt(ref a, ref b);
+                Lit.Sqrt(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Sqrt(a[i]) / b[i], 1e-7);

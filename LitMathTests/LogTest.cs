@@ -18,7 +18,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = i + r.NextDouble();
 
-                Lit.Ln(ref a, ref b);
+                Lit.Ln(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Log(a[i]) / b[i], 1e-8);
@@ -34,7 +34,7 @@ namespace LitMathTests
             for (int i = 0; i < 4; ++i)
                 a[i] = -i-1;
 
-            Lit.Ln(ref a, ref b);
+            Lit.Ln(in a, ref b);
 
             for (int i = 0; i < 4; ++i)
                 Assert.AreEqual(b[i], double.NaN);
@@ -49,7 +49,7 @@ namespace LitMathTests
             a[0] = double.PositiveInfinity;
             a[1] = double.NaN;
 
-            Lit.Ln(ref a, ref b);
+            Lit.Ln(in a, ref b);
 
             Assert.AreEqual(b[0], double.PositiveInfinity);
             Assert.IsTrue(double.IsNaN(b[1]));
@@ -68,7 +68,7 @@ namespace LitMathTests
                 for (int i = 0; i < n; ++i)
                     a[i] = (float)(i + r.NextDouble());
 
-                Lit.Ln(ref a, ref b);
+                Lit.Ln(in a, ref b);
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(1.0, Math.Log(a[i]) / b[i], 1e-6);
@@ -84,7 +84,7 @@ namespace LitMathTests
             for (int i = 0; i < 4; ++i)
                 a[i] = -i;
 
-            Lit.Ln(ref a, ref b);
+            Lit.Ln(in a, ref b);
 
             for (int i = 0; i < 8; ++i)
                 Assert.AreEqual(b[i], double.NaN);
@@ -99,7 +99,7 @@ namespace LitMathTests
             a[0] = float.PositiveInfinity;
             a[1] = float.NaN;
 
-            Lit.Ln(ref a, ref b);
+            Lit.Ln(in a, ref b);
 
             Assert.AreEqual(b[0], float.PositiveInfinity);
             Assert.IsTrue(float.IsNaN(b[1]));

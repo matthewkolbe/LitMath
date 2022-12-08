@@ -19,7 +19,7 @@ namespace LitMathTests
             for (int i = 0; i < n; i++)
                 x[i] = 30.0*(r.NextDouble()-0.5);
 
-            Lit.Erf(ref x, ref y);
+            Lit.Erf(in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], SpecialFunctions.Erf(x[i]), 1e-13);
@@ -41,7 +41,7 @@ namespace LitMathTests
                 s[i] = (i % 10) + 0.5;
             }
 
-            Lit.CDF(ref m, ref s, ref x, ref y);
+            Lit.CDF(in m, in s, in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 1e-13);
@@ -63,7 +63,7 @@ namespace LitMathTests
                 really[i] = Normal.CDF(m, s, x[i]);
             }
 
-            Lit.CDF(m, s, ref x, ref y);
+            Lit.CDF(m, s, in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], really[i], 1e-9);
@@ -88,7 +88,7 @@ namespace LitMathTests
             really[2] = Normal.CDF(m, s, x[2]);
             really[3] = Normal.CDF(m, s, x[3]);
 
-            Lit.CDF(m, s, ref x, ref y);
+            Lit.CDF(m, s, in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], really[i], 1e-13);
@@ -107,7 +107,7 @@ namespace LitMathTests
             x[1] = double.PositiveInfinity;
             x[2] = double.NegativeInfinity;
             
-            Lit.CDF(m, s, ref x, ref y);
+            Lit.CDF(m, s, in x, ref y);
 
             Assert.True(double.IsNaN(y[0]));
             Assert.AreEqual(y[1], 1.0, 1e-10);
@@ -130,7 +130,7 @@ namespace LitMathTests
                 s[i] = (i % 10) + 0.5f;
             }
 
-            Lit.CDF(ref m, ref s, ref x, ref y);
+            Lit.CDF(in m, in s, in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], Normal.CDF(m[i], s[i], x[i]), 2e-7);
@@ -152,30 +152,10 @@ namespace LitMathTests
                 realy[i] = (float)Normal.CDF((double)m, (double)s, (double)x[i]);
             }
 
-            Lit.CDF(m, s, ref x, ref y);
+            Lit.CDF(m, s, in x, ref y);
 
             for (int i = 0; i < n; ++i)
                 Assert.AreEqual(y[i], realy[i], 1e-5);
-        }
-
-        [Test]
-        public void CdfFloatInfNansAreRight()
-        {
-            var n = 3;
-            Span<float> x = new float[n];
-            Span<float> y = new float[n];
-            var m = 0.0f;
-            var s = 1.0f;
-
-            x[0] = float.NaN;
-            x[1] = float.PositiveInfinity;
-            x[2] = float.NegativeInfinity;
-
-            Lit.CDF(m, s, ref x, ref y);
-
-            Assert.True(float.IsNaN(y[0]));
-            Assert.AreEqual(y[1], 1.0, 1e-10);
-            Assert.AreEqual(y[2], 0.0, 1e-10);
         }
     }
 }
