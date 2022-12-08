@@ -10,7 +10,7 @@ namespace LitMath
     public static partial class Lit
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sin(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Sin(in Vector256<double> x, ref Vector256<double> y)
         {
             // Since sin() is periodic around 2pi, this converts x into the range of [0, 2pi]
             var xt = Avx.Subtract(x, Avx.Multiply(Double.Trig.TWOPI, Avx.Floor(Avx.Divide(x, Double.Trig.TWOPI))));
@@ -54,7 +54,7 @@ namespace LitMath
         /// <param name="x"></param>
         /// <param name="y"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void SinInZeroQuarterPi(ref Vector256<double> x, ref Vector256<double> y)
+        static void SinInZeroQuarterPi(in Vector256<double> x, ref Vector256<double> y)
         {
             var xsq = Avx.Multiply(x, x);
 
@@ -70,7 +70,7 @@ namespace LitMath
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Tan(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Tan(in Vector256<double> x, ref Vector256<double> y)
         {
             // Calculation:
             //     Move to range [0, Pi] with no adjustments
@@ -103,7 +103,7 @@ namespace LitMath
 
             // tan(x) = sin(x) / sqrt(1-sin(x)^2)
             var xx = Vector256.Create(0.0);
-            SinInZeroQuarterPi(ref xt, ref xx);
+            SinInZeroQuarterPi(in xt, ref xx);
             xt = Avx.Sqrt(Avx.Subtract(Double.Trig.ONE, Avx.Multiply(xx, xx)));
 
             xx = Avx.Add(
@@ -114,7 +114,7 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void TanMixedModel(ref Vector256<double> x, ref Vector256<double> y)
+        public static void TanMixedModel(in Vector256<double> x, ref Vector256<double> y)
         {
             // Calculation:
             //     Move to range [0, Pi] with no adjustments
@@ -146,7 +146,7 @@ namespace LitMath
 
             // tan(x) = sin(x) / sqrt(1-sin(x)^2)
             var xx = Vector256.Create(0.0);
-            SinInZeroQuarterPi(ref xt, ref xx);
+            SinInZeroQuarterPi(in xt, ref xx);
 
             var xsq = Avx.Multiply(xt, xt);
 
@@ -168,51 +168,51 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sinh(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Sinh(in Vector256<double> x, ref Vector256<double> y)
         {
-            Lit.Exp(ref x, ref y);
+            Lit.Exp(in x, ref y);
             var iy = Avx.Divide(Double.Trig.ONE, y);
             y = Avx.Multiply(Double.Trig.HALF, Avx.Subtract(y, iy));
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Cosh(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Cosh(in Vector256<double> x, ref Vector256<double> y)
         {
-            Lit.Exp(ref x, ref y);
+            Lit.Exp(in x, ref y);
             var iy = Avx.Divide(Double.Trig.ONE, y);
             y = Avx.Multiply(Double.Trig.HALF, Avx.Add(y, iy));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Tanh(ref Vector256<double> x, ref Vector256<double> y)
+        public static void Tanh(in Vector256<double> x, ref Vector256<double> y)
         {
-            Lit.Exp(ref x, ref y);
+            Lit.Exp(in x, ref y);
             var iy = Avx.Divide(Double.Trig.ONE, y);
             y = Avx.Divide(Avx.Subtract(y, iy), Avx.Add(y, iy));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ASinh(ref Vector256<double> x, ref Vector256<double> y)
+        public static void ASinh(in Vector256<double> x, ref Vector256<double> y)
         {
             y = Avx.Add(Avx.Multiply(x, x), Double.Trig.ONE);
             y = Avx.Sqrt(y);
-            x = Avx.Add(x, y);
-            Lit.Ln(ref x, ref y);
+            y = Avx.Add(x, y);
+            Lit.Ln(in y, ref y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ACosh(ref Vector256<double> x, ref Vector256<double> y)
+        public static void ACosh(in Vector256<double> x, ref Vector256<double> y)
         {
             y = Avx.Subtract(Avx.Multiply(x, x), Double.Trig.ONE);
             y = Avx.Sqrt(y);
-            x = Avx.Add(x, y);
-            Lit.Ln(ref x, ref y);
+            y = Avx.Add(x, y);
+            Lit.Ln(in y, ref y);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ATan(ref Vector256<double> x, ref Vector256<double> y)
+        public static void ATan(in Vector256<double> x, ref Vector256<double> y)
         {
             // Idea taken from https://github.com/avrdudes/avr-libc/blob/main/libm/fplib/atan.S
 
@@ -273,10 +273,10 @@ namespace LitMath
         /// <param name="xx"></param>
         /// <param name="yy"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sin(ref double xx, ref double yy, int index)
+        public static void Sin(in double xx, ref double yy, int index)
         {
-            var x = Util.LoadV256(ref xx, index);
-            Sin(ref x, ref x);
+            var x = Util.LoadV256(in xx, index);
+            Sin(in x, ref x);
             Util.StoreV256(ref yy, index, x);
         }
 
@@ -287,10 +287,10 @@ namespace LitMath
         /// <param name="xx"></param>
         /// <param name="yy"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Cos(ref double xx, ref double yy, int index)
+        public static void Cos(in double xx, ref double yy, int index)
         {
-            var x = Avx.Add(Util.LoadV256(ref xx, index), Double.Trig.HALFPI);
-            Sin(ref x, ref x);
+            var x = Avx.Add(Util.LoadV256(in xx, index), Double.Trig.HALFPI);
+            Sin(in x, ref x);
             Util.StoreV256(ref yy, index, x);
         }
 
@@ -301,10 +301,10 @@ namespace LitMath
         /// <param name="xx"></param>
         /// <param name="yy"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Tan(ref double xx, ref double yy, int index)
+        public static void Tan(in double xx, ref double yy, int index)
         {
-            var x = Util.LoadV256(ref xx, index);
-            TanMixedModel(ref x, ref x);
+            var x = Util.LoadV256(in xx, index);
+            TanMixedModel(in x, ref x);
             Util.StoreV256(ref yy, index, x);
         }
 
@@ -315,10 +315,10 @@ namespace LitMath
         /// <param name="xx"></param>
         /// <param name="yy"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ATan(ref double xx, ref double yy, int index)
+        public static void ATan(in double xx, ref double yy, int index)
         {
-            var x = Util.LoadV256(ref xx, index);
-            ATan(ref x, ref x);
+            var x = Util.LoadV256(in xx, index);
+            ATan(in x, ref x);
             Util.StoreV256(ref yy, index, x);
         }
 
@@ -329,7 +329,7 @@ namespace LitMath
         /// <param name="yy"></param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Cos(ref Span<double> xx, ref Span<double> yy)
+        public static void Cos(in Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
             var n = xx.Length;
@@ -343,7 +343,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t0, j) = Unsafe.Add(ref x0, j);
 
-                Cos(ref t0, ref t0, 0);
+                Cos(in t0, ref t0, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref y0, j) = Unsafe.Add(ref t0, j);
@@ -354,25 +354,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
                 i += VSZ;
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
                 i += VSZ;
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
                 i += VSZ;
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Cos(ref x0, ref y0, i);
+                Cos(in x0, ref y0, i);
             }
         }
 
@@ -384,7 +384,7 @@ namespace LitMath
         /// <param name="yy"></param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sin(ref Span<double> xx, ref Span<double> yy)
+        public static void Sin(in Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
             var n = xx.Length;
@@ -398,7 +398,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t0, j) = Unsafe.Add(ref x0, j);
 
-                Sin(ref t0, ref t0, 0);
+                Sin(in t0, ref t0, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref y0, j) = Unsafe.Add(ref t0, j);
@@ -409,25 +409,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
                 i += VSZ;
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
                 i += VSZ;
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
                 i += VSZ;
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Sin(ref x0, ref y0, i);
+                Sin(in x0, ref y0, i);
             }
         }
 
@@ -439,7 +439,7 @@ namespace LitMath
         /// <param name="n"></param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Tan(ref Span<double> xx, ref Span<double> yy)
+        public static void Tan(in Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
             var n = xx.Length;
@@ -453,7 +453,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t0, j) = Unsafe.Add(ref x0, j);
 
-                Tan(ref t0, ref t0, 0);
+                Tan(in t0, ref t0, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref y0, j) = Unsafe.Add(ref t0, j);
@@ -464,25 +464,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
                 i += VSZ;
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
                 i += VSZ;
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
                 i += VSZ;
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Tan(ref x0, ref y0, i);
+                Tan(in x0, ref y0, i);
             }
         }
 
@@ -494,7 +494,7 @@ namespace LitMath
         /// <param name="n"></param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ATan(ref Span<double> xx, ref Span<double> yy)
+        public static void ATan(in Span<double> xx, ref Span<double> yy)
         {
             const int VSZ = 4;
             var n = xx.Length;
@@ -508,7 +508,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t0, j) = Unsafe.Add(ref x0, j);
 
-                ATan(ref t0, ref t0, 0);
+                ATan(in t0, ref t0, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref y0, j) = Unsafe.Add(ref t0, j);
@@ -519,25 +519,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
                 i += VSZ;
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
                 i += VSZ;
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
                 i += VSZ;
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                ATan(ref x0, ref y0, i);
+                ATan(in x0, ref y0, i);
             }
         }
     }

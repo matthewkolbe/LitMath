@@ -13,7 +13,7 @@ namespace LitMath
         /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sqrt(ref Span<double> x, ref Span<double> y)
+        public static void Sqrt(in Span<double> x, ref Span<double> y)
         {
             const int VSZ = 4;
             ref var xx = ref MemoryMarshal.GetReference(x);
@@ -28,7 +28,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t, j) = Unsafe.Add(ref xx, j);
 
-                Sqrt(ref t, ref t, 0);
+                Sqrt(in t, ref t, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref yy, j) = Unsafe.Add(ref t, j);
@@ -41,25 +41,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
             }
         }
 
@@ -71,7 +71,7 @@ namespace LitMath
         /// <param name="y">The return values</param>
         [SkipLocalsInit]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Sqrt(ref Span<float> x, ref Span<float> y)
+        public static void Sqrt(in Span<float> x, ref Span<float> y)
         {
             const int VSZ = 8;
             ref var xx = ref MemoryMarshal.GetReference(x);
@@ -86,7 +86,7 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref t, j) = Unsafe.Add(ref xx, j);
 
-                Sqrt(ref t, ref t, 0);
+                Sqrt(in t, ref t, 0);
 
                 for (int j = 0; j < n; ++j)
                     Unsafe.Add(ref yy, j) = Unsafe.Add(ref t, j);
@@ -99,25 +99,25 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 31))
             {
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
                 i += VSZ;
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 7); i += VSZ)
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
             if (i != n)
             {
                 i = n - VSZ;
-                Sqrt(ref xx, ref yy, i);
+                Sqrt(in xx, ref yy, i);
             }
         }
 
@@ -128,9 +128,9 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 4 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void Sqrt(ref double xx, ref double yy, int index)
+        static void Sqrt(in double xx, ref double yy, int index)
         {
-            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(ref xx, index)));
+            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
         }
 
 
@@ -140,9 +140,9 @@ namespace LitMath
         /// <param name="xx">A pointer to the first of 8 arguments</param>
         /// <param name="yy">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void Sqrt(ref float xx, ref float yy, int index)
+        static void Sqrt(in float xx, ref float yy, int index)
         {
-            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(ref xx, index)));
+            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
         }
     }
 }

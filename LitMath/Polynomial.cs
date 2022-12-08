@@ -10,10 +10,10 @@ namespace LitMath
     public static partial class Lit
     {
         /// <summary>
-        /// Returns the value of 4 polynomials of order n using AVX-256 intrinsics
+        /// Returns the value of 4 polynomials of order n using AVX-256 intrinsics using Horner's method
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref Vector256<double> x, ref Vector256<double>[] p, ref Vector256<double> r, int n)
+        public static void PolynomialValue(in Vector256<double> x, in Vector256<double>[] p, ref Vector256<double> r, int n)
         {
             r = p[n - 1];
 
@@ -22,12 +22,45 @@ namespace LitMath
 
         }
 
-
         /// <summary>
-        /// Returns the value of 4 polynomials of order p.Length using AVX-256 intrinsics
+        /// Returns the value of 4 polynomials of order n using AVX-256 intrinsics using Horner's method
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref Vector256<double> x, ref Span<Vector256<double>> p, ref Vector256<double> r)
+        public static void PolynomialValue(in Vector256<double> x, 
+            in Vector256<double> c0, 
+            in Vector256<double> c1,
+            in Vector256<double> c2,
+            in Vector256<double> c3,
+            in Vector256<double> c4,
+            in Vector256<double> c5,
+            in Vector256<double> c6,
+            in Vector256<double> c7,
+            in Vector256<double> c8,
+            in Vector256<double> c9,
+            in Vector256<double> c10,
+            in Vector256<double> c11,
+            ref Vector256<double> r)
+        {
+
+            var x2 = Avx.Multiply(x, x);
+            var x4 = Avx.Multiply(x2, x2);
+            var x8 = Avx.Multiply(x4, x4);
+
+            r = Fma.MultiplyAdd(
+                Fma.MultiplyAdd(
+                    Fma.MultiplyAdd(c11, x, c10), x2, Fma.MultiplyAdd(c9, x, c8)), x8,
+                Fma.MultiplyAdd(
+                    Fma.MultiplyAdd(Fma.MultiplyAdd(c7, x, c6), x2, Fma.MultiplyAdd(c5, x, c4)), x4,
+                    Fma.MultiplyAdd(Fma.MultiplyAdd(c3, x, c2), x2, Fma.MultiplyAdd(c1, x, c0))));
+
+        }
+
+
+        /// <summary>
+        /// Returns the value of 4 polynomials of order p.Length using AVX-256 intrinsics using Horner's method
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void PolynomialValue(in Vector256<double> x, in Span<Vector256<double>> p, ref Vector256<double> r)
         {
             r = p[p.Length - 1];
 
@@ -38,10 +71,10 @@ namespace LitMath
 
 
         /// <summary>
-        /// Returns the value of 4 polynomials of order p.Length using AVX-256 intrinsics
+        /// Returns the value of 4 polynomials of order p.Length using AVX-256 intrinsics using Horner's method
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector256<double> PolynomialValue(ref Vector256<double> x, ref Span<Vector256<double>> p)
+        public static Vector256<double> PolynomialValue(in Vector256<double> x, ref Span<Vector256<double>> p)
         {
             var r = p[p.Length - 1];
 
@@ -53,10 +86,10 @@ namespace LitMath
 
 
         /// <summary>
-        /// Returns the derivative of 4 polynomials of order n using AVX-256 intrinsics
+        /// Returns the derivative of 4 polynomials of order n using AVX-256 intrinsics using Horner's method
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialDerivative(ref Vector256<double> x, ref Vector256<double>[] p, ref Vector256<double> r, int n)
+        public static void PolynomialDerivative(in Vector256<double> x, in Vector256<double>[] p, ref Vector256<double> r, int n)
         {
             r = Avx.Multiply(Vector256.Create((double)(n - 1)), p[p.Length - 1]);
 
@@ -66,10 +99,10 @@ namespace LitMath
 
 
         /// <summary>
-        /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics
+        /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics using Horner's method
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialDerivative(ref Vector256<double> x, ref Span<Vector256<double>> p, ref Vector256<double> r)
+        public static void PolynomialDerivative(in Vector256<double> x, in Span<Vector256<double>> p, ref Vector256<double> r)
         {
             r = Avx.Multiply(Vector256.Create((double)(p.Length - 1)), p[p.Length - 1]);
 
@@ -82,7 +115,7 @@ namespace LitMath
         /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevSecondKindExpExtrapolation(ref Span<double> xx, ref Span<double> p, ref Span<double> rr)
+        public static void ChebyshevSecondKindExpExtrapolation(in Span<double> xx, in Span<double> p, ref Span<double> rr)
         {
             const int VSZ = 4;
             var n = xx.Length;
@@ -98,9 +131,9 @@ namespace LitMath
                 for (int j = 0; j < n; j++)
                     Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
 
-                inx = Util.LoadV256(ref tmpx, 0);
+                inx = Util.LoadV256(in tmpx, 0);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref tmpx, 0, oy);
 
                 for (int j = 0; j < n; ++j)
@@ -114,27 +147,27 @@ namespace LitMath
             // Calculates values in an unrolled manner if the number of values is large enough
             while (i < (n - 15))
             {
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
                 i += VSZ;
 
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
                 i += VSZ;
 
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
                 i += VSZ;
 
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
                 i += VSZ;
             }
@@ -142,9 +175,9 @@ namespace LitMath
             // Calculates the remaining sets of 4 values in a standard loop
             for (; i < (n - 3); i += VSZ)
             {
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
                 i += VSZ;
             }
@@ -153,9 +186,9 @@ namespace LitMath
             if (i != n)
             {
                 i = n - VSZ;
-                inx = Util.LoadV256(ref x, i);
+                inx = Util.LoadV256(in x, i);
                 oy = Vector256.Create(0.0);
-                ChebyshevSecondKindExpExtrapolation(ref inx, ref oy, ref p);
+                ChebyshevSecondKindExpExtrapolation(in inx, ref oy, in p);
                 Util.StoreV256(ref y, i, oy);
             }
         }
@@ -166,7 +199,7 @@ namespace LitMath
         /// Returns the derivative of 4 polynomials of order p.Length using AVX-256 intrinsics
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector256<double> PolynomialDerivative(ref Vector256<double> x, ref Span<Vector256<double>> p)
+        public static Vector256<double> PolynomialDerivative(in Vector256<double> x, in Span<Vector256<double>> p)
         {
             var r = p[p.Length - 1];
 
@@ -184,7 +217,7 @@ namespace LitMath
         /// <param name="d">Derivative</param>
         /// <param name="n"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevFirst(ref Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, ref ReadOnlySpan<double> coefficients)
+        public static void ChebyshevFirst(in Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, in ReadOnlySpan<double> coefficients)
         {
             Span<Vector256<double>> rr = stackalloc Vector256<double>[coefficients.Length];
             Span<Vector256<double>> dd = stackalloc Vector256<double>[coefficients.Length];
@@ -208,8 +241,8 @@ namespace LitMath
                 dd[i] = Avx.Subtract(Fma.MultiplyAdd(Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
             }
 
-            Lit.Dot(ref cc, ref rr, ref r);
-            Lit.Dot(ref cc, ref dd, ref d);
+            Lit.Dot(in cc, in rr, ref r);
+            Lit.Dot(in cc, in dd, ref d);
         }
 
 
@@ -221,7 +254,7 @@ namespace LitMath
         /// <param name="d">Derivative</param>
         /// <param name="n"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevSecond(ref Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, ref Span<double> coefficients)
+        public static void ChebyshevSecond(in Vector256<double> x, ref Vector256<double> r, ref Vector256<double> d, in Span<double> coefficients)
         {
             Span<Vector256<double>> rr = stackalloc Vector256<double>[coefficients.Length];
             Span<Vector256<double>> dd = stackalloc Vector256<double>[coefficients.Length];
@@ -245,8 +278,8 @@ namespace LitMath
                 dd[i] = Avx.Subtract(Fma.MultiplyAdd(Double.Polynomial.TWO, Avx.Multiply(dd[i - 1], x), rr[i - 1]), dd[i - 2]);
             }
 
-            Lit.Dot(ref cc, ref rr, ref r);
-            Lit.Dot(ref cc, ref dd, ref d);
+            Lit.Dot(in cc, in rr, ref r);
+            Lit.Dot(in cc, in dd, ref d);
         }
 
 
@@ -255,7 +288,7 @@ namespace LitMath
         /// for values outside of[-1, 1]
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevSecondKindExpExtrapolation(Vector256<double> x, ref Vector256<double> r, ref Span<double> coefficients)
+        public static void ChebyshevSecondKindExpExtrapolation(Vector256<double> x, ref Vector256<double> r, in Span<double> coefficients)
         {
             Vector256<double> d = Vector256.Create(0.0);
             var mask = Avx.Or(
@@ -264,7 +297,7 @@ namespace LitMath
 
             var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
 
-            ChebyshevSecond(ref xx, ref r, ref d, ref coefficients);
+            ChebyshevSecond(in xx, ref r, ref d, in coefficients);
 
             var out_range_r = r;
 
@@ -281,7 +314,7 @@ namespace LitMath
        /// for values outside of[-1, 1]
        /// </summary>
        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ChebyshevSecondKindExpExtrapolation(ref Vector256<double> x, ref Vector256<double> r, ref Span<double> coefficients)
+        public static void ChebyshevSecondKindExpExtrapolation(in Vector256<double> x, ref Vector256<double> r, in Span<double> coefficients)
         {
             Vector256<double> d = Vector256.Create(0.0);
             var mask = Avx.Or(
@@ -290,7 +323,7 @@ namespace LitMath
 
             var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
 
-            ChebyshevSecond(ref xx, ref r, ref d, ref coefficients);
+            ChebyshevSecond(in xx, ref r, ref d, in coefficients);
 
             var out_range_r = r;
 
@@ -308,7 +341,7 @@ namespace LitMath
         /// for values outside of[-1, 1]
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void ChebyshevFirstKindExpExtrapolation(Vector256<double> x, Vector256<double> r, ref ReadOnlySpan<double> coefficients)
+        public static unsafe void ChebyshevFirstKindExpExtrapolation(Vector256<double> x, Vector256<double> r, in ReadOnlySpan<double> coefficients)
         {
             Vector256<double> d = Vector256.Create(0.0);
             var mask = Avx.Or(
@@ -317,7 +350,7 @@ namespace LitMath
 
             var xx = Util.Min(Util.Max(x, Double.Polynomial.NEGONE), Double.Polynomial.ONE);
 
-            ChebyshevFirst(ref xx, ref r, ref d, ref coefficients);
+            ChebyshevFirst(in xx, ref r, ref d, in coefficients);
 
             var out_range_r = r;
 
@@ -331,7 +364,7 @@ namespace LitMath
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void PolynomialValue(ref Vector256<float> x, ref Vector256<float>[] p, ref Vector256<float> r, int n)
+        static void PolynomialValue(in Vector256<float> x, in Vector256<float>[] p, ref Vector256<float> r, int n)
         {
             r = p[n - 1];
 
@@ -348,12 +381,12 @@ namespace LitMath
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref Span<double> x, ref Span<double> p, ref Span<double> y)
+        public static void PolynomialValue(in Span<double> x, in Span<double> p, ref Span<double> y)
         {
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var pp = ref MemoryMarshal.GetReference(p);
             ref var yy = ref MemoryMarshal.GetReference(y);
-            PolynomialValue(ref xx, ref pp, ref yy, x.Length, p.Length);
+            PolynomialValue(in xx, in pp, ref yy, x.Length, p.Length);
         }
 
         /// <summary>
@@ -363,12 +396,12 @@ namespace LitMath
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialDerivative(ref Span<double> x, ref Span<double> p, ref Span<double> y)
+        public static void PolynomialDerivative(in Span<double> x, in Span<double> p, ref Span<double> y)
         {
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var pp = ref MemoryMarshal.GetReference(p);
             ref var yy = ref MemoryMarshal.GetReference(y);
-            PolynomialDerivative(ref xx, ref pp, ref yy, x.Length, p.Length);
+            PolynomialDerivative(in xx, in pp, ref yy, x.Length, p.Length);
         }
 
 
@@ -379,13 +412,13 @@ namespace LitMath
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<double> PolynomialValue(ref Span<double> x, ref Span<double> p)
+        public static Span<double> PolynomialValue(in Span<double> x, in Span<double> p)
         {
             var y = new Span<double>(GC.AllocateUninitializedArray<double>(x.Length));
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var pp = ref MemoryMarshal.GetReference(p);
             ref var yy = ref MemoryMarshal.GetReference(y);
-            PolynomialValue(ref xx, ref pp, ref yy, x.Length, p.Length);
+            PolynomialValue(in xx, in pp, ref yy, x.Length, p.Length);
             return y;
         }
 
@@ -396,13 +429,13 @@ namespace LitMath
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<double> PolynomialDerivative(ref Span<double> x, ref Span<double> p)
+        public static Span<double> PolynomialDerivative(in Span<double> x, in Span<double> p)
         {
             var y = new Span<double>(GC.AllocateUninitializedArray<double>(x.Length));
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var pp = ref MemoryMarshal.GetReference(p);
             ref var yy = ref MemoryMarshal.GetReference(y);
-            PolynomialDerivative(ref xx, ref pp, ref yy, x.Length, p.Length);
+            PolynomialDerivative(in xx, in pp, ref yy, x.Length, p.Length);
             return y;
         }
 
@@ -414,12 +447,12 @@ namespace LitMath
         /// <param name="p">The polynomial coefficients where the index corresponds to the order</param>
         /// <param name="y">The result</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref Span<float> x, ref Span<float> p, ref Span<float> y)
+        public static void PolynomialValue(in Span<float> x, in Span<float> p, ref Span<float> y)
         {
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var pp = ref MemoryMarshal.GetReference(p);
             ref var yy = ref MemoryMarshal.GetReference(y);
-            PolynomialValue(ref xx, ref pp, ref yy, x.Length, p.Length);
+            PolynomialValue(in xx, in pp, ref yy, x.Length, p.Length);
         }
 
 
@@ -432,20 +465,20 @@ namespace LitMath
         /// <param name="N">Length of x (must be mod4)</param>
         /// <param name="order">Length of p</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref double x, ref double p, ref double r, int N, int order)
+        public static void PolynomialValue(in double x, in double p, ref double r, int N, int order)
         {
             var pp = GC.AllocateUninitializedArray<Vector256<double>>(order);
 
             for (int i = 0; i < order; ++i)
-                pp[i] = Vector256.Create(Unsafe.Add(ref p, i));
+                pp[i] = Vector256.Create(Unsafe.Add(ref Unsafe.AsRef(in p), i));
 
             var rr = Vector256.Create(0.0);
             Vector256<double> xx;
 
             for (int i = 0; i < N; i += 4)
             {
-                xx = Util.LoadV256(ref x, i);
-                PolynomialValue(ref xx, ref pp, ref rr, order);
+                xx = Util.LoadV256(in x, i);
+                PolynomialValue(in xx, in pp, ref rr, order);
                 Util.StoreV256(ref r, i, rr);
             }
         }
@@ -460,20 +493,20 @@ namespace LitMath
         /// <param name="N">Length of x (must be mod4)</param>
         /// <param name="order">Length of p</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialDerivative(ref double x, ref double p, ref double r, int N, int order)
+        public static void PolynomialDerivative(in double x, in double p, ref double r, int N, int order)
         {
             var pp = GC.AllocateUninitializedArray<Vector256<double>>(order);
 
             for (int i = 0; i < order; ++i)
-                pp[i] = Vector256.Create(Unsafe.Add(ref p, i));
+                pp[i] = Vector256.Create(Unsafe.Add(ref Unsafe.AsRef(in p), i));
 
             var rr = Vector256.Create(0.0);
             Vector256<double> xx;
 
             for (int i = 0; i < N; i += 4)
             {
-                xx = Util.LoadV256(ref x, i);
-                PolynomialDerivative(ref xx, ref pp, ref rr, order);
+                xx = Util.LoadV256(in x, i);
+                PolynomialDerivative(in xx, in pp, ref rr, order);
                 Util.StoreV256(ref r, i, rr);
             }
         }
@@ -488,20 +521,20 @@ namespace LitMath
         /// <param name="N">Length of x (must be mod8)</param>
         /// <param name="order">Length of p</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void PolynomialValue(ref float x, ref float p, ref float r, int N, int order)
+        public static void PolynomialValue(in float x, in float p, ref float r, int N, int order)
         {
             var pp = GC.AllocateUninitializedArray<Vector256<float>>(order);
 
             for (int i = 0; i < order; ++i)
-                pp[i] = Vector256.Create(Unsafe.Add(ref p, i));
+                pp[i] = Vector256.Create(Unsafe.Add(ref Unsafe.AsRef(in p), i));
 
             var rr = Vector256.Create(0.0f);
             Vector256<float> xx;
 
             for (int i = 0; i < N; i += 8)
             {
-                xx = Util.LoadV256(ref x, i);
-                PolynomialValue(ref xx, ref pp, ref rr, order);
+                xx = Util.LoadV256(in x, i);
+                PolynomialValue(in xx, in pp, ref rr, order);
                 Util.StoreV256(ref r, i, rr);
             }
         }
