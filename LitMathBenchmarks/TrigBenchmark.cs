@@ -9,7 +9,7 @@ namespace LitMathBenchmarks
     {
         double[] x, results;
 
-        [Params(32, 50000)]
+        [Params(32, 2048)]
         public int N;
         double temp = 0.0;
 
@@ -36,7 +36,7 @@ namespace LitMathBenchmarks
         {
             var xx = x.AsSpan();
             var rr = results.AsSpan();
-            Lit.Sin(ref xx, ref rr);
+            Lit.Sin(in xx, ref rr);
         }
 
         [Benchmark]
@@ -51,7 +51,7 @@ namespace LitMathBenchmarks
         {
             var xx = x.AsSpan();
             var rr = results.AsSpan();
-            Lit.Cos(ref xx, ref rr);
+            Lit.Cos(in xx, ref rr);
 
         }
 
@@ -67,7 +67,7 @@ namespace LitMathBenchmarks
         {
             var xx = x.AsSpan();
             var rr = results.AsSpan();
-            Lit.Tan(ref xx, ref rr);
+            Lit.Tan(in xx, ref rr);
         }
 
         [Benchmark]
@@ -82,7 +82,7 @@ namespace LitMathBenchmarks
         {
             var xx = x.AsSpan();
             var rr = results.AsSpan();
-            Lit.ATan(ref xx, ref rr);
+            Lit.ATan(in xx, ref rr);
         }
     }
 }

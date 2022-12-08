@@ -41,7 +41,7 @@ namespace LitMathBenchmarks
         {
             var lg = logs.AsSpan();
             var r = results.AsSpan();
-            Lit.Ln(ref lg, ref r);
+            Lit.Ln(in lg, ref r);
             
         }
 
@@ -50,7 +50,7 @@ namespace LitMathBenchmarks
         {
             var lg = flogs.AsSpan();
             var r = fresults.AsSpan();
-            Lit.Ln(ref lg, ref r);
+            Lit.Ln(in lg, ref r);
         }
 
     }

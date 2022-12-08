@@ -12,10 +12,10 @@ namespace LitMathBenchmarks
         double[] exps, results;
         float[] fexps, fresults;
 
-        [Params(4, 8, 128, 2048, 120000)]
+        [Params(3_200_000)]
         public int N;
         double temp = 0.0;
-        int cores = Environment.ProcessorCount;
+        int cores = Environment.ProcessorCount * 2;
 
         [GlobalSetup]
         public void SetUp()
@@ -44,7 +44,7 @@ namespace LitMathBenchmarks
         {
             var ex = exps.AsSpan();
             var r = results.AsSpan();
-            Lit.Exp(ref ex, ref r);
+            Lit.Exp(in ex, ref r);
         }
 
         [Benchmark]
@@ -56,7 +56,7 @@ namespace LitMathBenchmarks
             {
                 var ex = exps.AsSpan().Slice(i, n);
                 var r = results.AsSpan().Slice(i, n);
-                Lit.Exp(ref ex, ref r);
+                Lit.Exp(in ex, ref r);
             });
 
         }
@@ -73,7 +73,7 @@ namespace LitMathBenchmarks
         {
             var ex = fexps.AsSpan();
             var r = fresults.AsSpan();
-            Lit.Exp(ref ex, ref r);
+            Lit.Exp(in ex, ref r);
         }
     }
 }

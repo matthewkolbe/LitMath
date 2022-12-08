@@ -10,7 +10,7 @@ namespace LitMathBenchmarks
         double[] x, y;
         float[] xf, yf;
 
-        [Params(1000)]
+        [Params(100_000)]
         public int N;
         double temp = 0.0;
 
@@ -36,7 +36,7 @@ namespace LitMathBenchmarks
             var xx = x.AsSpan();
             var yy = y.AsSpan();
 
-            Lit.Erf(ref xx, ref yy);
+            Lit.Erf(in xx, ref yy);
         }
 
         [Benchmark]
@@ -52,7 +52,7 @@ namespace LitMathBenchmarks
             var xx = x.AsSpan();
             var yy = y.AsSpan();
 
-            Lit.CDF(0.0, 1.0, ref xx, ref yy);
+            Lit.CDF(0.0, 1.0, in xx, ref yy);
         }
 
         [Benchmark]
@@ -60,7 +60,7 @@ namespace LitMathBenchmarks
         {
             var xx = xf.AsSpan();
             var yy = yf.AsSpan();
-            Lit.CDF(0.0f, 1.0f, ref xx, ref yy);
+            Lit.CDF(0.0f, 1.0f, in xx, ref yy);
         }
 
         [Benchmark]

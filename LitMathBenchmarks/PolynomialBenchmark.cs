@@ -43,7 +43,7 @@ namespace LitMathBenchmarks
         [Benchmark]
         public void LitPlynomialDouble()
         {
-            Lit.PolynomialValue(ref x[0], ref p[0], ref results[0], N, order);
+            Lit.PolynomialValue(in x[0], in p[0], ref results[0], N, order);
         }
     }
 }

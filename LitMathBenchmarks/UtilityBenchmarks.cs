@@ -48,48 +48,7 @@ namespace LitMathBenchmarks
         {
             ref var fr = ref MemoryMarshal.GetArrayDataReference(from);
             ref var tt = ref MemoryMarshal.GetArrayDataReference(to);
-            Util.Copy(ref fr, ref tt, N);
-        }
-
-        [Benchmark]
-        public void RefArithm()
-        {
-            Unsafe.As<double[], Vector256<double>[]>(ref from);
-
-            ref var fr = ref MemoryMarshal.GetArrayDataReference(from); 
-            ref var tt = ref MemoryMarshal.GetArrayDataReference(to);
-
-            for (int i = 0; i < N;)
-            {
-                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
-                i += 4;
-                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
-                i += 4;
-                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
-                i += 4;
-                Util.StoreV256(ref tt, i, Avx.Add(Util.LoadV256(ref fr, i), Util.LoadV256(ref tt, i)));
-                i += 4;
-            }
-        }
-
-
-
-        [Benchmark]
-        public unsafe void NormalCast()
-        {
-            fixed (double* fr = from) fixed (double* tt = to)
-                for (int i = 0; i < N; )
-                {
-                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
-                    i += 4;
-                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
-                    i += 4;
-                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
-                    i += 4;
-                    Avx.Store(tt, Avx.Add(Avx.LoadVector256(fr + i), Avx.LoadVector256(tt + i)));
-                    i += 4;
-                }
-
+            Util.Copy(in fr, ref tt, N);
         }
     }
 }

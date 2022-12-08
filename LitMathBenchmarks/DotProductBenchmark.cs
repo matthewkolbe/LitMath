@@ -46,7 +46,7 @@ namespace LitMathBenchmarks
         [Benchmark]
         public void LitDotDouble()
         {
-            temp = Lit.Dot(ref x[0], ref y[0], N);
+            temp = Lit.Dot(in x[0], in y[0], N);
         }
 
         [Benchmark]
@@ -54,7 +54,7 @@ namespace LitMathBenchmarks
         {
             var xx = xf.AsSpan();
             var yy = yf.AsSpan();
-            temp = Lit.Dot(ref xx, ref yy);
+            temp = Lit.Dot(in xx, in yy);
         }
     }
 }
