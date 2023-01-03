@@ -1001,13 +1001,14 @@ namespace LitMath
             for (; i < (n - 3); i += 4)
                 vr1 = Avx.Add(Util.LoadV256(in x, i), vr1);
 
-            var r = Aggregate(in vr1);
+            if (i != n)
+            {
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << (n - i)));
+                var xv = Util.LoadMaskedV256(in x, i, mask);
+                vr1 = Avx.Add(xv, vr1);
+            }
 
-            // clean up the residual without AVX
-            for (; i < n; i++)
-                r += Unsafe.Add(ref Unsafe.AsRef(in x), i);
-
-            return r;
+            return Aggregate(in vr1);
         }
     }
 }
