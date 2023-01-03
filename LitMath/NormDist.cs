@@ -36,7 +36,7 @@ namespace LitMath
                 var xx = Util.LoadMaskedV256(in x0, 0, mask);
                 var yy = Util.LoadMaskedV256(in y0, 0, mask);
                 CDF(in m, in s, in xx, ref yy);
-                Util.StoreMaskedV256(ref y0, 0, xx, mask);
+                Util.StoreMaskedV256(ref y0, 0, yy, mask);
 
                 return;
             }
@@ -107,7 +107,7 @@ namespace LitMath
                 var xx = Util.LoadMaskedV256(in x0, 0, mask);
                 var yy = Util.LoadMaskedV256(in y0, 0, mask);
                 CDF(in m, in s, in xx, ref yy);
-                Util.StoreMaskedV256(ref y0, 0, xx, mask);
+                Util.StoreMaskedV256(ref y0, 0, yy, mask);
 
                 return;
             }
