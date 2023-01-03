@@ -884,9 +884,63 @@ namespace LitMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> CreateMaskDouble(int mask)
+        {
+            return Vector256.Create((mask & 1) == 0 ? 0: ~0, (mask & 2) == 0 ? 0 : ~0, (mask & 4) == 0 ? 0 : ~0, (mask & 8) == 0 ? 0 : ~0).AsDouble();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> CreateMaskFloat(int mask)
+        {
+            return Vector256.Create((mask & 1) == 0 ? 0 : ~0, (mask & 2) == 0 ? 0 : ~0, (mask & 4) == 0 ? 0 : ~0, (mask & 8) == 0 ? 0 : ~0,
+                                    (mask & 16) == 0 ? 0 : ~0, (mask & 32) == 0 ? 0 : ~0, (mask & 64) == 0 ? 0 : ~0, (mask & 128) == 0 ? 0 : ~0).AsSingle();
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<double> LoadMaskedV256(in double ptr, int offset, in Vector256<double> mask)
+        {
+            unsafe
+            {
+                fixed (double* ptr_ = &Unsafe.Add(ref Unsafe.AsRef(in ptr), offset))
+                    return Avx.MaskLoad(ptr_, mask);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector256<float> LoadMaskedV256(in float ptr, int offset, in Vector256<float> mask)
+        {
+            unsafe
+            {
+                fixed (float* ptr_ = &Unsafe.Add(ref Unsafe.AsRef(in ptr), offset))
+                    return Avx.MaskLoad(ptr_, mask);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void StoreV256<T>(ref T ptr, int offset, Vector256<T> value) where T : unmanaged
         {
             Unsafe.As<T, Vector256<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreMaskedV256(ref double ptr, int offset, Vector256<double> value, in Vector256<double> mask)
+        {
+            unsafe
+            {
+                fixed (double* ptr_ = &Unsafe.Add(ref Unsafe.AsRef(in ptr), offset))
+                    Avx.MaskStore(ptr_, mask, value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreMaskedV256(ref float ptr, int offset, Vector256<float> value, in Vector256<float> mask)
+        {
+            unsafe
+            {
+                fixed (float* ptr_ = &Unsafe.Add(ref Unsafe.AsRef(in ptr), offset))
+                    Avx.MaskStore(ptr_, mask, value);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
