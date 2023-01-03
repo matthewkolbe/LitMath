@@ -410,7 +410,7 @@ namespace LitMath
             {
                 var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
                 var xv = Util.LoadMaskedV256(in x0, 0, mask);
-                var yv = Vector256.Create(0.0);
+                var yv = Vector256<double>.Zero;
                 Erf(in xv, ref yv);
                 Util.StoreMaskedV256(ref y0, 0, yv, mask);
 
