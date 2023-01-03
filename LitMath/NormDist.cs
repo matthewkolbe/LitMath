@@ -175,17 +175,11 @@ namespace LitMath
 
             if (n < VSZ)
             {
-                Span<double> tmp = stackalloc double[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
-
-                xx = Util.LoadV256(in tmpx, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref tmpx, i, o);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
+                xx = Util.LoadMaskedV256(in x0, 0, mask);
+                var yy = Util.LoadMaskedV256(in y0, 0, mask);
+                CDF(in m, in s, in xx, ref yy);
+                Util.StoreMaskedV256(ref y0, 0, yy, mask);
 
                 return;
             }
@@ -252,17 +246,11 @@ namespace LitMath
 
             if (n < VSZ)
             {
-                Span<float> tmp = stackalloc float[4];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
-
-                xx = Util.LoadV256(in tmpx, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref tmpx, i, o);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
+                var mask = Util.CreateMaskFloat(~(int.MaxValue << n));
+                xx = Util.LoadMaskedV256(in x0, 0, mask);
+                var yy = Util.LoadMaskedV256(in y0, 0, mask);
+                CDF(in m, in s, in xx, ref yy);
+                Util.StoreMaskedV256(ref y0, 0, yy, mask);
 
                 return;
             }
@@ -420,16 +408,11 @@ namespace LitMath
             // if n < 4, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                Span<double> tmp = stackalloc double[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x0, j);
-
-                Erf(in tmpx, ref tmpx, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx, j);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
+                var xv = Util.LoadMaskedV256(in x0, 0, mask);
+                var yv = Vector256.Create(0.0);
+                Erf(in xv, ref yv);
+                Util.StoreMaskedV256(ref y0, 0, yv, mask);
 
                 return;
             }

@@ -892,16 +892,15 @@ namespace LitMath
             for (; i < (n - 3); i += VSZ)
                 vr1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), vr1);
 
-            var r = Aggregate(in vr1);
-
-            // clean up the residual without AVX
             if (i != n)
             {
-                for (; i < n; ++i)
-                    r += Unsafe.Add(ref Unsafe.AsRef(in x), i) * Unsafe.Add(ref Unsafe.AsRef(in y), i);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << (n-i)));
+                var xv = Util.LoadMaskedV256(in x, i, mask);
+                var yv = Util.LoadMaskedV256(in y, i, mask);
+                vr1 = Fma.MultiplyAdd(xv, yv, vr1);
             }
 
-            return r;
+            return Aggregate(in vr1);
         }
 
 
@@ -944,16 +943,15 @@ namespace LitMath
             for (; i < (n - 7); i += VSZ)
                 vr1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), vr1);
 
-            var r = Aggregate(in vr1);
-
-            // clean up the residual without AVX
             if (i != n)
             {
-                for (; i < n; ++i)
-                    r += Unsafe.Add(ref Unsafe.AsRef(in x), i) * Unsafe.Add(ref Unsafe.AsRef(in y), i);
+                var mask = Util.CreateMaskFloat(~(int.MaxValue << (n - i)));
+                var xv = Util.LoadMaskedV256(in x, i, mask);
+                var yv = Util.LoadMaskedV256(in y, i, mask);
+                vr1 = Fma.MultiplyAdd(xv, yv, vr1);
             }
 
-            return r;
+            return Aggregate(in vr1);
         }
 
 
