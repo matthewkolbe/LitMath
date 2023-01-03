@@ -273,15 +273,13 @@ namespace LitMath
 
             if (n< VSZ)
             {
-                Span<double> tmp = stackalloc double[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
+                var xv = Util.LoadMaskedV256(in x, 0, mask);
+                var yv = Vector256.Create(0.0);
+                Ln(in xv, ref yv);
+                Util.StoreMaskedV256(ref y, 0, yv, mask);
 
-                Ln(in tmpx, ref tmpx, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
+                return;
             }
 
             int i = 0;
@@ -329,15 +327,13 @@ namespace LitMath
 
             if (n < VSZ)
             {
-                Span<float> tmp = stackalloc float[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
+                var mask = Util.CreateMaskFloat(~(int.MaxValue << n));
+                var xv = Util.LoadMaskedV256(in x, 0, mask);
+                var yv = Vector256.Create(0.0f);
+                Ln(in xv, ref yv);
+                Util.StoreMaskedV256(ref y, 0, yv, mask);
 
-                Ln(in tmpx, ref tmpx, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
+                return;
             }
 
             int i = 0;

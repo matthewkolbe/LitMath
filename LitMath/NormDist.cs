@@ -30,25 +30,13 @@ namespace LitMath
 
             if(n < VSZ)
             {
-                Span<double> tmpx = stackalloc double[VSZ];
-                ref var tmpx0 = ref MemoryMarshal.GetReference(tmpx);
-                Span<double> tmpm = stackalloc double[VSZ];
-                ref var tmpm0 = ref MemoryMarshal.GetReference(tmpm);
-                Span<double> tmps = stackalloc double[VSZ];
-                ref var tmps0 = ref MemoryMarshal.GetReference(tmps);
-
-
-                for (int j = 0; j < n; j++)
-                {
-                    Unsafe.Add(ref tmpx0, j) = Unsafe.Add(ref x0, j);
-                    Unsafe.Add(ref tmpm0, j) = Unsafe.Add(ref m0, j);
-                    Unsafe.Add(ref tmps0, j) = Unsafe.Add(ref s0, j);
-                }
-
-                CDF(in m0, in s0, in x0, ref y0, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx0, j);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
+                var m = Util.LoadMaskedV256(in m0, 0, mask);
+                var s = Util.LoadMaskedV256(in s0, 0, mask);
+                var xx = Util.LoadMaskedV256(in x0, 0, mask);
+                var yy = Util.LoadMaskedV256(in y0, 0, mask);
+                CDF(in m, in s, in xx, ref yy);
+                Util.StoreMaskedV256(ref y0, 0, xx, mask);
 
                 return;
             }
@@ -108,31 +96,18 @@ namespace LitMath
             ref var s0 = ref MemoryMarshal.GetReference(sigma);
             ref var x0 = ref MemoryMarshal.GetReference(x);
             ref var y0 = ref MemoryMarshal.GetReference(y);
-            Vector256<double> m, s, xx;
 
             var n = x.Length;
 
             if (n < VSZ)
             {
-                Span<float> tmpx = stackalloc float[VSZ];
-                ref var tmpx0 = ref MemoryMarshal.GetReference(tmpx);
-                Span<float> tmpm = stackalloc float[VSZ];
-                ref var tmpm0 = ref MemoryMarshal.GetReference(tmpm);
-                Span<float> tmps = stackalloc float[VSZ];
-                ref var tmps0 = ref MemoryMarshal.GetReference(tmps);
-
-
-                for (int j = 0; j < n; j++)
-                {
-                    Unsafe.Add(ref tmpx0, j) = Unsafe.Add(ref x0, j);
-                    Unsafe.Add(ref tmpm0, j) = Unsafe.Add(ref m0, j);
-                    Unsafe.Add(ref tmps0, j) = Unsafe.Add(ref s0, j);
-                }
-
-                CDF(in m0, in s0, in x0, ref y0, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref tmpx0, j);
+                var mask = Util.CreateMaskFloat(~(int.MaxValue << n));
+                var m = Util.LoadMaskedV256(in m0, 0, mask);
+                var s = Util.LoadMaskedV256(in s0, 0, mask);
+                var xx = Util.LoadMaskedV256(in x0, 0, mask);
+                var yy = Util.LoadMaskedV256(in y0, 0, mask);
+                CDF(in m, in s, in xx, ref yy);
+                Util.StoreMaskedV256(ref y0, 0, xx, mask);
 
                 return;
             }

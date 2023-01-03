@@ -74,15 +74,12 @@ namespace LitMath
             // if n < 4, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                Span<double> tmp = stackalloc double[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
-
-                Exp(in tmpx, ref tmpx, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
+                var xv = Util.LoadMaskedV256(in x, 0, mask);
+                xv = Avx.Multiply(xv, Double.Exp.LOG2EF);
+                var yv = Vector256.Create(0.0);
+                Two(in xv, ref yv);
+                Util.StoreMaskedV256(ref y, 0, yv, mask);
 
                 return;
             }
@@ -133,15 +130,12 @@ namespace LitMath
             // if n < 8, then we handle the special case by creating a 4 element array to work with
             if (n < VSZ)
             {
-                Span<float> tmp = stackalloc float[VSZ];
-                ref var tmpx = ref MemoryMarshal.GetReference(tmp);
-                for (int j = 0; j < n; j++)
-                    Unsafe.Add(ref tmpx, j) = Unsafe.Add(ref x, j);
-
-                Exp(in tmpx, ref tmpx, 0);
-
-                for (int j = 0; j < n; ++j)
-                    Unsafe.Add(ref y, j) = Unsafe.Add(ref tmpx, j);
+                var mask = Util.CreateMaskFloat(~(int.MaxValue << n));
+                var xv = Util.LoadMaskedV256(in x, 0, mask);
+                xv = Avx.Multiply(xv, Float.Exp.LOG2EF);
+                var yv = Vector256.Create(0.0f);
+                Two(in xv, ref yv);
+                Util.StoreMaskedV256(ref y, 0, yv, mask);
 
                 return;
             }
