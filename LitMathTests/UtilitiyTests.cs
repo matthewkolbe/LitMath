@@ -65,6 +65,31 @@ namespace LitMathTests
         }
 
         [Test]
+        public unsafe void GatherDoubleTest()
+        {
+            int N = 10000;
+
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
+            {
+                Span<double> a = stackalloc double[N];
+                Span<int> ind = stackalloc int[n];
+                Span<double> b = stackalloc double[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < N; ++i)
+                    a[i] = r.NextDouble() - 0.5;
+
+                for (int i = 0; i < n; ++i)
+                    ind[i] = r.Next(N-1);
+
+                Util.Gather(in a, in ind, ref b);
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(a[ind[i]], b[i]);
+            }
+        }
+
+        [Test]
         public void CopyDoubleTest()
         {
             foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 1003 })
