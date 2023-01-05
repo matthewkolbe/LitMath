@@ -128,6 +128,17 @@ namespace LitMath
             Sign(in aa, ref rr, r.Length);
         }
 
+        /// <summary>
+        /// Gathers values from a[indexes[i]], and puts them in r[i].
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Gather(in Span<double> a, in Span<int> indexes, ref Span<double> r)
+        {
+            ref var aa = ref MemoryMarshal.GetReference(a);
+            ref var ind = ref MemoryMarshal.GetReference(indexes);
+            ref var rr = ref MemoryMarshal.GetReference(r);
+            Gather(in aa, in ind, ref rr, r.Length);
+        }
 
         /// <summary>
         /// Copies data from one n-sized array to another
@@ -384,6 +395,46 @@ namespace LitMath
             // clean up the residual
             for (; i < n; i++)
                 Unsafe.Add(ref r, i) = Math.Abs(Unsafe.Add(ref Unsafe.AsRef(in v), i));
+        }
+
+        /// <summary>
+        /// Gathers values from a[indexes[i]], and puts them in r[i].
+        /// </summary>
+        /// <param name="a">The potential range of values to gather</param>
+        /// <param name="indexes">The indexes to gather</param>
+        /// <param name="r">The return value (can be the same as v if you so desire this to happen in-place)</param>
+        /// <param name="n">Size of the return and index arrays</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Gather(in double a, in int indexes, ref double r, int n)
+        {
+            unsafe
+            {
+                fixed (double* aa = &a)
+                {
+                    int i = 0;
+                    while (i < (n - 15))
+                    {
+                        Util.StoreV256(ref r, i, Avx2.GatherVector256(aa, Util.LoadV128(in indexes, i), 8));
+                        i += 4;
+                        Util.StoreV256(ref r, i, Avx2.GatherVector256(aa, Util.LoadV128(in indexes, i), 8));
+                        i += 4;
+                        Util.StoreV256(ref r, i, Avx2.GatherVector256(aa, Util.LoadV128(in indexes, i), 8));
+                        i += 4;
+                        Util.StoreV256(ref r, i, Avx2.GatherVector256(aa, Util.LoadV128(in indexes, i), 8));
+                        i += 4;
+                    }
+
+                    for (; i < (n - 3); i += 4)
+                        Util.StoreV256(ref r, i, Avx2.GatherVector256(aa, Util.LoadV128(in indexes, i), 8));
+
+                    // clean up the residual
+                    // TODO: masked gather to clean up
+                    for (; i < n; i++)
+                        Unsafe.Add(ref r, i) = *(aa + Unsafe.Add(ref Unsafe.AsRef(in indexes), i));
+                }
+            }
+
+            
         }
 
         /// <summary>
