@@ -23,7 +23,6 @@ Lit.Exp(in x, ref y);
 ## Speedups
 Below is a Benchmark.net example that compares LitMath used serally and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
 
-```
 |               Method |        N |               Mean |           Error |          StdDev |
 |--------------------- |--------- |-------------------:|----------------:|----------------:|
 |       NaiveExpDouble |        3 |          11.162 ns |       0.0619 ns |       0.0579 ns |
@@ -46,7 +45,7 @@ Below is a Benchmark.net example that compares LitMath used serally and in paral
 |         LitExpDouble | 32000000 |  47,072,238.961 ns |  95,635.2682 ns |  84,778.1743 ns |
 | LitExpDoubleParallel | 32000000 |   4,904,424.323 ns |  28,642.6496 ns |  26,792.3522 ns |
 |            ExpMklNet | 32000000 |  23,692,375.938 ns | 461,596.1351 ns | 690,895.3606 ns |
-```
+
  
 ## Parallel Processing
 LitMath leverages SIMD for instruction level parallelism, but not compute cores. For array sizes large enough, it would be a really good idea to do multicore processing. There's an example called `LitExpDoubleParallel` in the ExpBenchmark.cs file to see one way to go about this. 
