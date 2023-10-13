@@ -1,6 +1,7 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
 using LitMath;
+using MathNet.Numerics;
 using System.Runtime.Intrinsics;
 
 namespace LitMathTests
@@ -208,6 +209,29 @@ namespace LitMathTests
 
                 for (int i = 0; i < n; ++i)
                     Assert.AreEqual(r[i], 2 * i + 1, 1e-8);
+            }
+        }
+
+        [Test]
+        public void CosineSimilarityDouble()
+        {
+            foreach (var n in new[] { 1, 3, 9, 15, 33, 62, 71, 1003 })
+            {
+                Span<double> a = stackalloc double[n];
+                Span<double> b = stackalloc double[n];
+                var r = new Random(10);
+
+                for (int i = 0; i < n; ++i)
+                {
+                    a[i] = r.NextDouble();
+                    b[i] = r.NextDouble();
+                }
+
+                var result = Lit.CosineSimilarity(in a, in b);
+                var mathnetresult = 1 - Distance.Cosine(a.ToArray(), b.ToArray());
+
+                for (int i = 0; i < n; ++i)
+                    Assert.AreEqual(result, mathnetresult, 1e-8);
             }
         }
     }

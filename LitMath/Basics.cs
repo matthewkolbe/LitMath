@@ -196,6 +196,20 @@ namespace LitMath
 
 
         /// <summary>
+        /// Returns the cosine similarity of two vectors
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y">Input</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double CosineSimilarity(in Span<double> x, in Span<double> y)
+        {
+            ref var xx = ref MemoryMarshal.GetReference(x);
+            ref var yy = ref MemoryMarshal.GetReference(y);
+            return CosineSimilarity(in xx, in yy, x.Length);
+        }
+
+
+        /// <summary>
         /// Does a dot product between two Span<Vector256<double>>. This is a little different from the other
         /// dot products in this library, where instead of chunking a single array to make a dot product faster
         /// on a single computation, it uses Avx to do four dot products at once.
@@ -1009,6 +1023,86 @@ namespace LitMath
             }
 
             return Aggregate(in vr1);
+        }
+
+        /// <summary>
+        /// Computes the consine similarity of x and y
+        /// </summary>
+        /// <param name="x">Input</param>
+        /// <param name="y"></param>
+        /// <param name="n">Size of the array</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double CosineSimilarity(in double x, in double y, int n)
+        {
+            const int VSZ = 4;
+            int i = 0;
+            var xy1 = Vector256<double>.Zero;
+            var xx1 = Vector256<double>.Zero;
+            var yy1 = Vector256<double>.Zero;
+
+            if (n > 63)
+            {
+                var xy2 = Vector256<double>.Zero;
+                var xy3 = Vector256<double>.Zero;
+                var xy4 = Vector256<double>.Zero;
+                var xx2 = Vector256<double>.Zero;
+                var xx3 = Vector256<double>.Zero;
+                var xx4 = Vector256<double>.Zero;
+                var yy2 = Vector256<double>.Zero;
+                var yy3 = Vector256<double>.Zero;
+                var yy4 = Vector256<double>.Zero;
+
+                while (i < (n - 63))
+                {
+                    xy1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), xy1);
+                    xx1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in x, i), xx1);
+                    yy1 = Fma.MultiplyAdd(Util.LoadV256(in y, i), Util.LoadV256(in y, i), yy1);
+                    i += VSZ;
+                    xy2 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), xy2);
+                    xx2 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in x, i), xx2);
+                    yy2 = Fma.MultiplyAdd(Util.LoadV256(in y, i), Util.LoadV256(in y, i), yy2);
+                    i += VSZ;
+                    xy3 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), xy3);
+                    xx3 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in x, i), xx3);
+                    yy3 = Fma.MultiplyAdd(Util.LoadV256(in y, i), Util.LoadV256(in y, i), yy3);
+                    i += VSZ;
+                    xy4 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), xy4);
+                    xx4 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in x, i), xx4);
+                    yy4 = Fma.MultiplyAdd(Util.LoadV256(in y, i), Util.LoadV256(in y, i), yy4);
+                    i += VSZ;
+                }
+
+                xy3 = Avx.Add(xy3, xy4);
+                xx3 = Avx.Add(xx3, xx4);
+                yy3 = Avx.Add(yy3, yy4);
+
+                xy1 = Avx.Add(xy1, xy2);
+                xx1 = Avx.Add(xx1, xx2);
+                yy1 = Avx.Add(yy1, yy2);
+
+                xy1 = Avx.Add(xy1, xy3);
+                xx1 = Avx.Add(xx1, xx3);
+                yy1 = Avx.Add(yy1, yy3);
+            }
+
+            for (; i < (n - 3); i += VSZ)
+            {
+                xy1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in y, i), xy1);
+                xx1 = Fma.MultiplyAdd(Util.LoadV256(in x, i), Util.LoadV256(in x, i), xx1);
+                yy1 = Fma.MultiplyAdd(Util.LoadV256(in y, i), Util.LoadV256(in y, i), yy1);
+            }
+
+            if (i != n)
+            {
+                var mask = Util.CreateMaskDouble(~(int.MaxValue << (n - i)));
+                var xv = Util.LoadMaskedV256(in x, i, mask);
+                var yv = Util.LoadMaskedV256(in y, i, mask);
+                xy1 = Fma.MultiplyAdd(xv, yv, xy1);
+                xx1 = Fma.MultiplyAdd(xv, xv, xx1);
+                yy1 = Fma.MultiplyAdd(yv, yv, yy1);
+            }
+
+            return Aggregate(in xy1) / Math.Sqrt(Aggregate(in xx1) * Aggregate(in yy1));
         }
     }
 }
