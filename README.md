@@ -1,5 +1,5 @@
 # LitMath
- A collection of AVX-256 accelerated mathematical functions for .NET
+ A collection of AVX2 and AVX512 accelerated mathematical functions for .NET
 
  I rewrote `Exp`, `Log`, `Sin` and a few other useful functions using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4 doubles or 8 floats per core. I added the `Sqrt`, ERF function and a Normal Distribution CDF as well. On doubles, the following accuracies apply:
  
@@ -20,8 +20,11 @@ Span<double> y = new Span<double>(new double[n]);
 Lit.Exp(in x, ref y);
  ```
  
+ # AVX512
+ With the addition of some AVX512 featrues in .NET 8.0, we're going multi-platform. I'll be adding some AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+
 ## Speedups
-Below is a Benchmark.net example that compares LitMath used serally and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
+Below is a Benchmark.net example that compares LitMath used serially and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
 
 |               Method |        N |               Mean |           Error |          StdDev |
 |--------------------- |--------- |-------------------:|----------------:|----------------:|
