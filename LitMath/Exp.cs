@@ -55,7 +55,7 @@ namespace LitMath
             ref var x = ref MemoryMarshal.GetReference(xx);
             ref var y = ref MemoryMarshal.GetReference(yy);
 
-            // if n < VSZ, then we handle the special case by creating a 4 element array to work with
+            // if n < VSZ, then we handle the special case by creating a VSZ element array to work with
             if (n < VSZ)
             {
                 Span<double> tmpx = stackalloc double[VSZ];
