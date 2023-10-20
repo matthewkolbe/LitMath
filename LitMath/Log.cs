@@ -227,33 +227,11 @@ namespace LitMath
         /// <param name="x">A Span to the first argument</param>
         /// <param name="y">The return values</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<double> Ln(Span<double> x)
-        {
-            return Ln(in x);
-        }
-
-        /// <summary>
-        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<float> Ln(in Span<float> x)
         {
             var y = new Span<float>(GC.AllocateUninitializedArray<float>(x.Length));
             Ln(in x, ref y);
             return y;
-        }
-
-        /// <summary>
-        /// Calculates n natural logs on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        /// <param name="y">The return values</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<float> Ln(Span<float> x)
-        {
-            return Ln(in x);
         }
 
         /// <summary>

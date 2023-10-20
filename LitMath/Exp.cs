@@ -21,18 +21,6 @@ namespace LitMath
             return y;
         }
 
-
-        /// <summary>
-        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<double> Exp(Span<double> x)
-        {
-            return Exp(in x);
-        }
-
-
         /// <summary>
         /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
         /// </summary>
@@ -43,18 +31,6 @@ namespace LitMath
             var y = new Span<float>(GC.AllocateUninitializedArray<float>(x.Length));
             Exp(in x, ref y);
             return y;
-        }
-
-
-        /// <summary>
-        /// Calculates n exponentials on doubles via 256-bit SIMD intrinsics. 
-        /// </summary>
-        /// <param name="x">A Span to the first argument</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<float> Exp(Span<float> x)
-        {
-            return Exp(in x);
-
         }
 
         /// <summary>
