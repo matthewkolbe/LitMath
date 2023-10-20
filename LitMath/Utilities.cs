@@ -434,7 +434,7 @@ namespace LitMath
                 }
             }
 
-            
+
         }
 
         /// <summary>
@@ -937,7 +937,7 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector256<double> CreateMaskDouble(int mask)
         {
-            return Vector256.Create((mask & 1) == 0 ? 0: ~0, (mask & 2) == 0 ? 0 : ~0, (mask & 4) == 0 ? 0 : ~0, (mask & 8) == 0 ? 0 : ~0).AsDouble();
+            return Vector256.Create((mask & 1) == 0 ? 0 : ~0, (mask & 2) == 0 ? 0 : ~0, (mask & 4) == 0 ? 0 : ~0, (mask & 8) == 0 ? 0 : ~0).AsDouble();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1006,4 +1006,27 @@ namespace LitMath
             Unsafe.As<T, Vector128<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
         }
     }
+
+#if NET8_0_OR_GREATER
+    public static class Util512
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector512<double> IfElse(Vector512<double> mask, Vector512<double> trueval, Vector512<double> falseval)
+        {
+            return Avx512F.BlendVariable(falseval, trueval, mask);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector512<T> LoadV512<T>(in T ptr, int offset) where T : unmanaged
+        {
+            return Unsafe.As<T, Vector512<T>>(ref Unsafe.Add(ref Unsafe.AsRef(in ptr), offset));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreV512<T>(ref T ptr, int offset, Vector512<T> value) where T : unmanaged
+        {
+            Unsafe.As<T, Vector512<T>>(ref Unsafe.Add(ref ptr, offset)) = value;
+        }
+    }
+#endif
 }
