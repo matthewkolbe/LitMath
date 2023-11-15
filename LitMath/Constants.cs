@@ -269,18 +269,30 @@ namespace LitMath
                 public static readonly Vector512<double> THIGH = Vector512.Create(709.0 * 1.4426950408889634);
                 public static readonly Vector512<double> TLOW = Vector512.Create(-709.0 * 1.4426950408889634);
                 public static readonly Vector512<double> NAN = Vector512.Create(double.NaN);
+                //public static readonly Vector512<double> T0 = Vector512.Create(1.0);
+                //public static readonly Vector512<double> T1 = Vector512.Create(0.6931471805599453087156032);
+                //public static readonly Vector512<double> T2 = Vector512.Create(0.240226506959101195979507231);
+                //public static readonly Vector512<double> T3 = Vector512.Create(0.05550410866482166557484);
+                //public static readonly Vector512<double> T4 = Vector512.Create(0.00961812910759946061829085);
+                //public static readonly Vector512<double> T5 = Vector512.Create(0.0013333558146398846396);
+                //public static readonly Vector512<double> T6 = Vector512.Create(0.0001540353044975008196326);
+                //public static readonly Vector512<double> T7 = Vector512.Create(0.000015252733847608224);
+                //public static readonly Vector512<double> T8 = Vector512.Create(0.000001321543919937730177);
+                //public static readonly Vector512<double> T9 = Vector512.Create(0.00000010178055034703);
+                //public static readonly Vector512<double> T10 = Vector512.Create(0.000000007073075504998510);
+                //public static readonly Vector512<double> T11 = Vector512.Create(0.00000000044560630323);
                 public static readonly Vector512<double> T0 = Vector512.Create(1.0);
-                public static readonly Vector512<double> T1 = Vector512.Create(0.6931471805599453087156032);
-                public static readonly Vector512<double> T2 = Vector512.Create(0.240226506959101195979507231);
-                public static readonly Vector512<double> T3 = Vector512.Create(0.05550410866482166557484);
-                public static readonly Vector512<double> T4 = Vector512.Create(0.00961812910759946061829085);
-                public static readonly Vector512<double> T5 = Vector512.Create(0.0013333558146398846396);
-                public static readonly Vector512<double> T6 = Vector512.Create(0.0001540353044975008196326);
-                public static readonly Vector512<double> T7 = Vector512.Create(0.000015252733847608224);
-                public static readonly Vector512<double> T8 = Vector512.Create(0.000001321543919937730177);
-                public static readonly Vector512<double> T9 = Vector512.Create(0.00000010178055034703);
-                public static readonly Vector512<double> T10 = Vector512.Create(0.000000007073075504998510);
-                public static readonly Vector512<double> T11 = Vector512.Create(0.00000000044560630323);
+                public static readonly Vector512<double> T1 = Vector512.Create(0.693147180559945309417);
+                public static readonly Vector512<double> T2 = Vector512.Create(0.240226506959978123546);
+                public static readonly Vector512<double> T3 = Vector512.Create(0.05550410864279623542);
+                public static readonly Vector512<double> T4 = Vector512.Create(0.0096181293268755212);
+                public static readonly Vector512<double> T5 = Vector512.Create(0.001333354652211751);
+                public static readonly Vector512<double> T6 = Vector512.Create(0.000154038979909582);
+                public static readonly Vector512<double> T7 = Vector512.Create(0.00001524546351426);
+                public static readonly Vector512<double> T8 = Vector512.Create(0.000001330604018231);
+                public static readonly Vector512<double> T9 = Vector512.Create(0.000000094920826066);
+                public static readonly Vector512<double> T10 = Vector512.Create(0.0000000098899236174);
+                public static readonly Vector512<double> T11 = Vector512.Create(0.0);
             }
 
             public static class Trig
