@@ -208,10 +208,8 @@ namespace LitMath
             }
 
             for (; i < (n - Loop.One(VSZ)); i += VSZ)
-            {
                 CDF(mean, sigma, in x0, ref y0, i);
-                i += VSZ;
-            }
+            
 
             if (i != n)
             {
