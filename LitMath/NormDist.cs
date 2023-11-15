@@ -354,6 +354,41 @@ namespace LitMath
             y = Avx.Multiply(yy, sign);
         }
 
+#if NET8_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Erf(in Vector512<double> x, ref Vector512<double> y)
+        {
+            
+            var sign = Avx512DQ.And(Double512.NormDist.NEGATIVE_ZERO, x);
+            sign = Avx512DQ.Or(sign, Double512.NormDist.ONE);
+            var xx = Avx512DQ.AndNot(Double512.NormDist.NEGATIVE_ZERO, x);
+
+            var t = Avx512F.FusedMultiplyAdd(Double512.NormDist.ONE_OVER_PI, xx, Double512.NormDist.ONE);
+            t = Avx512F.Divide(Double512.NormDist.ONE, t);
+
+            var tsq = Avx512F.Multiply(t, t);
+            var yy = Avx512F.FusedMultiplyAdd(Double512.NormDist.E12, tsq, Double512.NormDist.E10);
+            y = Avx512F.FusedMultiplyAdd(Double512.NormDist.E11, tsq, Double512.NormDist.E9);
+            yy = Avx512F.FusedMultiplyAdd(yy, tsq, Double512.NormDist.E8);
+            y = Avx512F.FusedMultiplyAdd(y, tsq, Double512.NormDist.E7);
+            yy = Avx512F.FusedMultiplyAdd(yy, tsq, Double512.NormDist.E6);
+            y = Avx512F.FusedMultiplyAdd(y, tsq, Double512.NormDist.E5);
+            yy = Avx512F.FusedMultiplyAdd(yy, tsq, Double512.NormDist.E4);
+            y = Avx512F.FusedMultiplyAdd(y, tsq, Double512.NormDist.E3);
+            yy = Avx512F.FusedMultiplyAdd(yy, tsq, Double512.NormDist.E2);
+            y = Avx512F.FusedMultiplyAdd(y, tsq, Double512.NormDist.E1);
+            yy = Avx512F.Multiply(yy, tsq);
+            yy = Avx512F.FusedMultiplyAdd(y, t, yy);
+
+            var exsq = Avx512F.Multiply(Avx512F.Multiply(xx, Double512.NormDist.NEGONE), xx);
+
+            Lit.Exp(in exsq, ref exsq);
+
+            yy = Avx512F.Multiply(yy, exsq);
+            yy = Avx512F.Add(Double512.NormDist.ONE, yy);
+            y = Avx512F.Multiply(yy, sign);
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Erf(in Vector256<float> x, ref Vector256<float> y)

@@ -8,6 +8,21 @@ using System.Runtime.Intrinsics.X86;
 
 namespace LitMath
 {
+    internal static class Loop
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Four(int vsz)
+        {
+            return 4 * vsz - 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int One(int vsz)
+        {
+            return vsz - 1;
+        }
+    }
+
     public static class Util
     {
 

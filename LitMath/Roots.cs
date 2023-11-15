@@ -15,7 +15,13 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Sqrt(in Span<double> x, ref Span<double> y)
         {
-            const int VSZ = 4;
+            int VSZ = 4;
+
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+                VSZ = 8;
+#endif
+
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var yy = ref MemoryMarshal.GetReference(y);
             var n = x.Length;
@@ -39,7 +45,7 @@ namespace LitMath
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            while (i < (n - 15))
+            while (i < (n - Loop.Four(VSZ)))
             {
                 Sqrt(in xx, ref yy, i);
                 i += VSZ;
@@ -52,7 +58,7 @@ namespace LitMath
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += VSZ)
+            for (; i < (n - Loop.One(VSZ)); i += VSZ)
                 Sqrt(in xx, ref yy, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
@@ -73,7 +79,13 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Sqrt(in Span<float> x, ref Span<float> y)
         {
-            const int VSZ = 8;
+            int VSZ = 8;
+
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+                VSZ = 16;
+#endif
+
             ref var xx = ref MemoryMarshal.GetReference(x);
             ref var yy = ref MemoryMarshal.GetReference(y);
             var n = x.Length;
@@ -97,7 +109,7 @@ namespace LitMath
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            while (i < (n - 31))
+            while (i < (n - Loop.Four(VSZ)))
             {
                 Sqrt(in xx, ref yy, i);
                 i += VSZ;
@@ -110,7 +122,7 @@ namespace LitMath
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 7); i += VSZ)
+            for (; i < (n - Loop.One(VSZ)); i += VSZ)
                 Sqrt(in xx, ref yy, i);
 
             // Cleans up any excess individual values (if n%4 != 0)
@@ -130,7 +142,12 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void Sqrt(in double xx, ref double yy, int index)
         {
-            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
+#if NET8_0_OR_GREATER
+            if(Avx512F.IsSupported)
+                Util512.StoreV512(ref yy, index, Avx512F.Sqrt(Util512.LoadV512(in xx, index)));
+            else
+#endif
+                Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
         }
 
 
@@ -142,7 +159,12 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void Sqrt(in float xx, ref float yy, int index)
         {
-            Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+                Util512.StoreV512(ref yy, index, Avx512F.Sqrt(Util512.LoadV512(in xx, index)));
+            else
+#endif
+                Util.StoreV256(ref yy, index, Avx.Sqrt(Util.LoadV256(in xx, index)));
         }
     }
 }

@@ -41,6 +41,37 @@ namespace LitMath
             y = Util.IfElse(Avx.CompareNotEqual(x, x), Double.Log.NAN, y);
         }
 
+#if NET8_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Log2(in Vector512<double> x, ref Vector512<double> y)
+        {
+            // This algorithm uses the properties of floating point number to transform x into d*2^m, so log(x)
+            // becomes log(d)+m, where d is in [1, 2]. Then it uses a series approximation of log to approximate 
+            // the value in [1, 2]
+
+            var d = Avx512F.GetMantissa(x, 0); // 0 = _MM_MANT_NORM_1_2, which scales the mantissa in [1,2]
+            y = Avx512F.GetExponent(x);
+
+            LogApprox(in d, ref d);
+
+            y = Avx512F.FusedMultiplyAdd(d, Double512.Log.LOG2EF, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Ln(in Vector512<double> x, ref Vector512<double> y)
+        {
+            // This algorithm uses the properties of floating point number to transform x into d*2^m, so log(x)
+            // becomes log(d)+m, where d is in [1, 2]. Then it uses a series approximation of log to approximate 
+            // the value in [1, 2]
+
+            var d = Avx512F.GetMantissa(x, 0); // 0 = _MM_MANT_NORM_1_2, which scales the mantissa in [1,2]
+            y = Avx512F.GetExponent(x);
+
+            LogApprox(in d, ref d);
+
+            y = Avx512F.FusedMultiplyAdd(Double512.Log.LN2, y, d);
+        }
+#endif
 
         /// <summary>
         /// Calculates 8 log base 2's on doubles via 256-bit SIMD intrinsics. 
@@ -69,9 +100,9 @@ namespace LitMath
             y = Avx.Add(end, y);
         }
 
-        
+
         /// <summary>
-        /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/x(+1)).
+        /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/(x+1)).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogApprox(in Vector256<double> x, ref Vector256<double> y)
@@ -90,9 +121,30 @@ namespace LitMath
             y = Avx.Multiply(rx, Double.Log.TWO);
         }
 
+#if NET8_0_OR_GREATER
+        /// <summary>
+        /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/(x+1)).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void LogApprox(in Vector512<double> x, ref Vector512<double> y)
+        {
+            y = Avx512F.Divide(Avx512F.Subtract(x, Double512.Log.ONE), Avx512F.Add(x, Double512.Log.ONE));
+            var ysq = Avx512F.Multiply(y, y);
+
+            var rx = Avx512F.FusedMultiplyAdd(ysq, Double512.Log.ONE_THIRTEENTH, Double512.Log.ONE_ELEVENTH);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_NINTH);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_SEVENTH);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_FIFTH);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_THIRD);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE);
+
+            rx = Avx512F.Multiply(y, rx);
+            y = Avx512F.Multiply(rx, Double512.Log.TWO);
+        }
+#endif
 
         /// <summary>
-        /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/x(+1)).
+        /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/(x+1)).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LogApprox(in Vector256<float> x, ref Vector256<float> y)
@@ -187,10 +239,22 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(in double xx, ref double yy, int index)
         {
-            var x = Util.LoadV256(in xx, index);
-            var y = Vector256<double>.Zero;
-            Ln(in x, ref y);
-            Util.StoreV256(ref yy, index, y);
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+            {
+                var x = Util512.LoadV512(in xx, index);
+                var y = Vector512<double>.Zero;
+                Ln(in x, ref y);
+                Util512.StoreV512(ref yy, index, y);
+            } else {
+#endif
+                var x = Util.LoadV256(in xx, index);
+                var y = Vector256<double>.Zero;
+                Ln(in x, ref y);
+                Util.StoreV256(ref yy, index, y);
+#if NET8_0_OR_GREATER
+            }
+#endif
         }
 
         /// <summary>
@@ -244,7 +308,13 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ln(in Span<double> xx, ref Span<double> yy)
         {
-            const int VSZ = 4;
+            int VSZ = 4;
+
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+                VSZ = 8;
+#endif
+
             var n = xx.Length;
             ref var x = ref MemoryMarshal.GetReference(xx);
             ref var y = ref MemoryMarshal.GetReference(yy);
@@ -263,7 +333,7 @@ namespace LitMath
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            while (i < (n - 15))
+            while (i < (n - Loop.Four(VSZ)))
             {
                 Ln(in x, ref y, i);
                 i += VSZ;
@@ -276,7 +346,7 @@ namespace LitMath
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - 3); i += VSZ)
+            for (; i < (n - Loop.One(VSZ)); i += VSZ)
                 Ln(in x, ref y, i);
 
 
