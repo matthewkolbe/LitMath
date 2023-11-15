@@ -352,7 +352,6 @@ namespace LitMath
 
             // Bound x by the maximum and minimum values this algorithm will handle.
             var xx = Avx512F.Max(Avx512F.Min(x, Double512.Exp.THIGH), Double512.Exp.TLOW);
-            xx = Avx512F.Add(Double512.Exp.HALF, xx);
             var fx = Avx512F.RoundScale(xx, 1);
 
             // This section gets a series approximation for exp(g) in [0, 1] since that is g's range.
@@ -372,8 +371,7 @@ namespace LitMath
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
             // since the exponent of a double will never be more than a max int32, then from int to long.
-            y = Avx512F.Scale(y, xx);
-            y = Avx512F.Multiply(y, Double512.Exp.INVSQRT);
+            y = Avx512F.Scale(y, Avx512F.Add(Double512.Exp.HALF, x));
 
             // Checks if x is greater than the highest acceptable argument, and sets to infinity if so.
             // Commented out because I think Scale covers it
