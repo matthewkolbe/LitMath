@@ -352,7 +352,7 @@ namespace LitMath
 
             // Bound x by the maximum and minimum values this algorithm will handle.
             var xx = Avx512F.Max(Avx512F.Min(x, Double512.Exp.THIGH), Double512.Exp.TLOW);
-            var fx = Avx512F.RoundScale(xx, 1);
+            var fx = Avx512F.RoundScale(xx, 0);
 
             // This section gets a series approximation for exp(g) in [0, 1] since that is g's range.
             xx = Avx512F.Subtract(xx, fx);
