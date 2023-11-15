@@ -1,5 +1,6 @@
 ﻿// Copyright Matthew Kolbe (2022)
 
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
@@ -163,66 +164,61 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(double mean, double sigma, in Span<double> x, ref Span<double> y)
         {
-            const int VSZ = 4;
+            int VSZ = 4;
+
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+                VSZ = 8;
+#endif
+
             int i = 0;
-            var m = Vector256.Create(mean);
-            var s = Vector256.Create(sigma);
-            var o = Vector256<double>.Zero;
             ref var x0 = ref MemoryMarshal.GetReference(x);
             ref var y0 = ref MemoryMarshal.GetReference(y);
-            Vector256<double> xx;
             var n = x.Length;
 
             if (n < VSZ)
             {
-                var mask = Util.CreateMaskDouble(~(int.MaxValue << n));
-                xx = Util.LoadMaskedV256(in x0, 0, mask);
-                var yy = Util.LoadMaskedV256(in y0, 0, mask);
-                CDF(in m, in s, in xx, ref yy);
-                Util.StoreMaskedV256(ref y0, 0, yy, mask);
+                Span<double> tmpx = stackalloc double[VSZ];
+                ref var t = ref MemoryMarshal.GetReference(tmpx);
+
+                for (int j = 0; j < n; j++)
+                    Unsafe.Add(ref t, j) = Unsafe.Add(ref x0, j);
+
+                CDF(mean, sigma, in t, ref t, 0);
+
+                for (int j = 0; j < n; ++j)
+                    Unsafe.Add(ref y0, j) = Unsafe.Add(ref t, j);
 
                 return;
             }
 
-            for (; i < (n - 15); )
+            while (i < (n - Loop.Four(VSZ)))
             {
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
                 i += VSZ;
 
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
                 i += VSZ;
 
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
                 i += VSZ;
 
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
                 i += VSZ;
             }
 
-            for (; i < (n - 3); i += VSZ)
+            for (; i < (n - Loop.One(VSZ)); i += VSZ)
             {
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
+                i += VSZ;
             }
 
             if (i != n)
             {
                 i = n - VSZ;
-                xx = Util.LoadV256(in x0, i);
-                CDF(in m, in s, in xx, ref o);
-                Util.StoreV256(ref y0, i, o);
+                CDF(mean, sigma, in x0, ref y0, i);
             }
         }
-
 
         /// <summary>
         /// Calculates the CDF of a normal distribution via 256-bit SIMD intrinsics.  
@@ -294,6 +290,47 @@ namespace LitMath
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CDF(double mean, double sigma, in double xx, ref double yy, int index)
+        {
+#if NET8_0_OR_GREATER
+            if (Avx512F.IsSupported)
+            {
+                var x = Util512.LoadV512(in xx, index);
+                var m = Vector512.Create(mean);
+                var v = Vector512.Create(sigma);
+                var y = Vector512.Create(0.0);
+                CDF(in m, in v, in x, ref y);
+                Util512.StoreV512(ref yy, index, y);
+            }
+            else
+            {
+#endif
+
+            var x = Util.LoadV256(in xx, index);
+            var m = Vector256.Create(mean);
+            var v = Vector256.Create(sigma);
+            var y = Vector256.Create(0.0);
+            CDF(in m, in v, in x, ref y);
+            Util.StoreV256(ref yy, index, y);
+
+#if NET8_0_OR_GREATER
+            }
+#endif
+        }
+
+#if NET8_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CDF(in Vector512<double> mean, in Vector512<double> sigma, in Vector512<double> x, ref Vector512<double> y)
+        {
+            var s = Avx512F.Multiply(sigma, Double512.NormDist.SQRT2);
+            var m = Avx512F.Subtract(x, mean);
+            m = Avx512F.Divide(m, s);
+            Erf(in m, ref y);
+            y = Avx512F.Add(y, Double512.NormDist.ONE);
+            y = Avx512F.Multiply(y, Double512.NormDist.HALF);
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CDF(in Vector256<double> mean, in Vector256<double> sigma, in Vector256<double> x, ref Vector256<double> y)
