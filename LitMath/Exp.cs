@@ -42,14 +42,12 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Exp(in Span<double> xx, ref Span<double> yy)
         {
-            int VSZ = 0;
+            int VSZ = 4;
 
 #if NET8_0_OR_GREATER
             if (Avx512F.IsSupported)
                 VSZ = 8;
-            else
 #endif
-                VSZ = 4;
 
             var n = xx.Length;
             ref var x = ref MemoryMarshal.GetReference(xx);
@@ -75,7 +73,7 @@ namespace LitMath
             int i = 0;
 
             // Calculates values in an unrolled manner if the number of values is large enough
-            while (i < (n - (VSZ*4 -1)))
+            while (i < (n - Loop.Four(VSZ)))
             {
                 Exp(in x, ref y, i);
                 i += VSZ;
@@ -88,7 +86,7 @@ namespace LitMath
             }
 
             // Calculates the remaining sets of 4 values in a standard loop
-            for (; i < (n - (VSZ - 1)); i += VSZ)
+            for (; i < (n - Loop.One(VSZ)); i += VSZ)
                 Exp(in x, ref y, i);
 
             // Cleans up any excess individual values (if n%VSZ != 0)
@@ -191,13 +189,13 @@ namespace LitMath
             }
 
 
-            /// <summary>
-            /// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics. 
-            /// </summary>
-            /// <param name="xx">A pointer to the first of 8 arguments</param>
-            /// <param name="yy">The return values</param>
-            /// <param name="index">The index offset of the operation starts on</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <summary>
+        /// Calculates 8 exponentials on floats via 256-bit SIMD intrinsics. 
+        /// </summary>
+        /// <param name="xx">A pointer to the first of 8 arguments</param>
+        /// <param name="yy">The return values</param>
+        /// <param name="index">The index offset of the operation starts on</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Exp(in float xx, ref float yy, int index)
         {
             // Instead of calculating e^x directly, calculate 2^(x / ln(2))
@@ -220,6 +218,19 @@ namespace LitMath
             Two(in xx, ref y);
         }
 
+#if NET8_0_OR_GREATER
+        /// <summary>
+        /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
+        /// </summary>
+        /// <param name="x">A reference to the 4 arguments</param>
+        /// <param name="y">The 4 results</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Exp(in Vector512<double> x, ref Vector512<double> y)
+        {
+            var xx = Avx512F.Multiply(x, Double512.Exp.LOG2EF);
+            Two(in xx, ref y);
+        }
+#endif
 
         /// <summary>
         /// Calculates 4 exponentials on doubles via 256-bit SIMD intrinsics.
@@ -295,7 +306,6 @@ namespace LitMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Two(in Vector256<double> x, ref Vector256<double> y)
         {
-
             // Bound x by the maximum and minimum values this algorithm will handle.
             var xx = Avx.Max(Avx.Min(x, Double.Exp.THIGH), Double.Exp.TLOW);
             var fx = Avx.RoundToNearestInteger(xx);
@@ -344,7 +354,7 @@ namespace LitMath
             var xx = Avx512F.Max(Avx512F.Min(x, Double512.Exp.THIGH), Double512.Exp.TLOW);
             var fx = Avx512F.RoundScale(xx, 0);
 
-            // This section gets a series approximation for exp(g) in (-0.5, 0.5) since that is g's range.
+            // This section gets a series approximation for exp(g) in [0, 1] since that is g's range.
             xx = Avx512F.Subtract(xx, fx);
             var xsq = Avx512F.Multiply(xx, xx);
             y = Avx512F.FusedMultiplyAdd(Double512.Exp.T11, xsq, Double512.Exp.T9);
@@ -361,16 +371,16 @@ namespace LitMath
 
             // Converts n to 2^n. There is no Avx2.ConvertToVector256Int64(fx) intrinsic, so we convert to int32's,
             // since the exponent of a double will never be more than a max int32, then from int to long.
-            fx = Avx512F.Add(fx, Double512.Exp.MAGIC_LONG_DOUBLE_ADD);
-            fx = Avx512F.ShiftLeftLogical(Avx512F.Add(Vector512.AsInt64<double>(fx), Lit.Long512.ONE_THOUSAND_TWENTY_THREE), 52).AsDouble();
-            y = Avx512F.Multiply(fx, y);
+            y = Avx512F.Scale(y, x);
 
             // Checks if x is greater than the highest acceptable argument, and sets to infinity if so.
-            y = Util512.IfElse(Avx512F.CompareGreaterThanOrEqual(x, Double512.Exp.THIGH), Double512.Exp.POSITIVE_INFINITY, y);
+            // Commented out because I think Scale covers it
+            //y = Util512.IfElse(Avx512F.CompareGreaterThanOrEqual(x, Double512.Exp.THIGH), Double512.Exp.POSITIVE_INFINITY, y);
 
             // Avx.CompareNotEqual(x, x) is a hack to determine which values of x are NaN, since NaN is the only
             // value that doesn't equal itself. 
-            y = Util512.IfElse(Avx512F.CompareNotEqual(x, x), Double512.Exp.NAN, y);
+            // Commented out because I think Scale covers it
+            //y = Util512.IfElse(Avx512F.CompareNotEqual(x, x), Double512.Exp.NAN, y);
 
         }
 #endif
