@@ -21,11 +21,11 @@ Lit.Exp(in x, ref y);
  ```
  
 ## AVX512
-With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding mor AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding more AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
 
 Preliminary results have been amazing. Check out the speedups below: 7.5x for `Log` and 5.5x for `Exp`. 
 
-I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .net 8, and if your machine supports AVX512F, it will just happen under the hood.
+I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .NET 8, and if your machine supports AVX512F, it will just happen under the hood.
 
 ## Speedups
 Below is a Benchmark.net example that compares LitMath used serially and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
