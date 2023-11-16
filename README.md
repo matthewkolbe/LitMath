@@ -1,7 +1,7 @@
 # LitMath
  A collection of AVX2 and AVX512 accelerated mathematical functions for .NET
 
- I rewrote `Exp`, `Log`, `Sin` and a few other useful functions using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4 doubles or 8 floats per core. I added the `Sqrt`, ERF function and a Normal Distribution CDF as well. On doubles, the following accuracies apply:
+ I rewrote `Exp`, `Log`, `Sin` and a few other useful functions using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4-8 doubles or 8-16 floats per core. On doubles, the following accuracies apply:
  
   - `Exp` and `Sqrt` run at double precision limits
   - `ERF` at `1e-13` 
