@@ -5,7 +5,7 @@
  
   - `Exp` and `Sqrt` run at double precision limits
   - `ERF` at `1e-13` 
-  - `Sin` and `Cos` at `1e-15`
+  - `Sin`, `Log` and `Cos` at `1e-15`
   - `Tan` in $[0,\pi/4]$ at `2e-16`
   - `ATan` at `1e-10` (working on it)
 
@@ -21,33 +21,26 @@ Lit.Exp(in x, ref y);
  ```
  
 ## AVX512
-With the addition of some AVX512 features in .NET 8.0, we're going multi-platform. I'll be adding some AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding mor AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+
+Preliminary results have been amazing. Check out the speedups below: 7.5x for `Log` and 5.5x for `Exp`. 
+
+I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .net 8, and if your machine supports AVX512F, it will just happen under the hood.
 
 ## Speedups
 Below is a Benchmark.net example that compares LitMath used serially and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
 
-|               Method |        N |               Mean |           Error |          StdDev |
-|--------------------- |--------- |-------------------:|----------------:|----------------:|
-|       NaiveExpDouble |        3 |          11.162 ns |       0.0619 ns |       0.0579 ns |
-|         LitExpDouble |        3 |           6.675 ns |       0.0452 ns |       0.0377 ns |
-| LitExpDoubleParallel |        3 |                 NA |              NA |              NA |
-|            ExpMklNet |        3 |          29.871 ns |       0.1172 ns |       0.1039 ns |
-|       NaiveExpDouble |       64 |         240.154 ns |       0.4125 ns |       0.3445 ns |
-|         LitExpDouble |       64 |          71.946 ns |       0.3332 ns |       0.2954 ns |
-| LitExpDoubleParallel |       64 |       4,428.705 ns |      19.1108 ns |      16.9412 ns |
-|            ExpMklNet |       64 |         116.934 ns |       0.6166 ns |       0.5466 ns |
-|       NaiveExpDouble |     2048 |       7,553.526 ns |      19.0518 ns |      17.8211 ns |
-|         LitExpDouble |     2048 |       2,446.337 ns |       9.8982 ns |       8.7745 ns |
-| LitExpDoubleParallel |     2048 |       8,950.587 ns |      43.8549 ns |      38.8763 ns |
-|            ExpMklNet |     2048 |       3,239.321 ns |       7.1020 ns |       6.6432 ns |
-|       NaiveExpDouble |    65536 |     232,554.102 ns |     434.3946 ns |     339.1467 ns |
-|         LitExpDouble |    65536 |      82,345.836 ns |     316.1190 ns |     295.6979 ns |
-| LitExpDoubleParallel |    65536 |      33,246.643 ns |     112.4273 ns |     105.1645 ns |
-|            ExpMklNet |    65536 |      19,159.788 ns |     189.5683 ns |     158.2981 ns |
-|       NaiveExpDouble | 32000000 | 111,572,790.000 ns | 128,706.4656 ns | 114,094.9294 ns |
-|         LitExpDouble | 32000000 |  47,072,238.961 ns |  95,635.2682 ns |  84,778.1743 ns |
-| LitExpDoubleParallel | 32000000 |   4,904,424.323 ns |  28,642.6496 ns |  26,792.3522 ns |
-|            ExpMklNet | 32000000 |  23,692,375.938 ns | 461,596.1351 ns | 690,895.3606 ns |
+|         Type |               Method |      N |          Mean |      Error |     StdDev |
+|------------- |--------------------- |------- |--------------:|-----------:|-----------:|
+| ExpBenchmark |       NaiveExpDouble |     64 |     218.69 ns |   0.105 ns |   0.082 ns |
+| LogBenchmark |       NaiveLogDouble |     64 |     137.06 ns |   0.041 ns |   0.036 ns |
+| ExpBenchmark |         LitExpDouble |     64 |      42.34 ns |   0.254 ns |   0.238 ns |
+| LogBenchmark |         LitLogDouble |     64 |      24.89 ns |   0.045 ns |   0.042 ns |
+| ExpBenchmark |       NaiveExpDouble | 100000 | 354,491.80 ns |  27.502 ns |  21.472 ns |
+| LogBenchmark |       NaiveLogDouble | 100000 | 259,985.93 ns |  47.545 ns |  44.474 ns |
+| ExpBenchmark |         LitExpDouble | 100000 |  64,727.96 ns | 696.267 ns | 617.222 ns |
+| LogBenchmark |         LitLogDouble | 100000 |  35,793.39 ns |  20.223 ns |  17.927 ns |
+
 
  
 ## Parallel Processing
