@@ -100,7 +100,6 @@ namespace LitMath
             y = Avx.Add(end, y);
         }
 
-
         /// <summary>
         /// A Taylor Series approximation of ln(x) that relies on the identity that ln(x) = 2*atan((x-1)/(x+1)).
         /// </summary>
@@ -110,15 +109,16 @@ namespace LitMath
             y = Avx.Divide(Avx.Subtract(x, Double.Log.ONE), Avx.Add(x, Double.Log.ONE));
             var ysq = Avx.Multiply(y, y);
 
-            var rx = Fma.MultiplyAdd(ysq, Double.Log.ONE_THIRTEENTH, Double.Log.ONE_ELEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_NINTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_SEVENTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_FIFTH);
-            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE_THIRD);
-            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.ONE);
+            var rx = Fma.MultiplyAdd(ysq, Double.Log.L8, Double.Log.L7);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L6);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L5);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L4);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L3);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L2);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.L1);
+            rx = Fma.MultiplyAdd(ysq, rx, Double.Log.TWO);
 
-            rx = Avx.Multiply(y, rx);
-            y = Avx.Multiply(rx, Double.Log.TWO);
+            y = Avx.Multiply(y, rx);
         }
 
 #if NET8_0_OR_GREATER
@@ -131,15 +131,16 @@ namespace LitMath
             y = Avx512F.Divide(Avx512F.Subtract(x, Double512.Log.ONE), Avx512F.Add(x, Double512.Log.ONE));
             var ysq = Avx512F.Multiply(y, y);
 
-            var rx = Avx512F.FusedMultiplyAdd(ysq, Double512.Log.ONE_THIRTEENTH, Double512.Log.ONE_ELEVENTH);
-            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_NINTH);
-            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_SEVENTH);
-            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_FIFTH);
-            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE_THIRD);
-            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.ONE);
+            var rx = Avx512F.FusedMultiplyAdd(ysq, Double512.Log.L8, Double512.Log.L7);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L6);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L5);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L4);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L3);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L2);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.L1);
+            rx = Avx512F.FusedMultiplyAdd(ysq, rx, Double512.Log.TWO);
 
-            rx = Avx512F.Multiply(y, rx);
-            y = Avx512F.Multiply(rx, Double512.Log.TWO);
+            y = Avx512F.Multiply(y, rx);
         }
 #endif
 

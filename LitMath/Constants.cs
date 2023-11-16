@@ -110,14 +110,16 @@ namespace LitMath
                 public static readonly Vector256<double> POSITIVE_INFINITY = Vector256.Create(double.PositiveInfinity);
                 public static readonly Vector256<double> NEGATIVE_INFINITY = Vector256.Create(double.PositiveInfinity);
                 public static readonly Vector256<double> TWO = Vector256.Create(2.0);
-                public static readonly Vector256<double> ONE_THIRD = Vector256.Create(1.0 / 3.0);
-                public static readonly Vector256<double> ONE_FIFTH = Vector256.Create(1.0 / 5.0);
-                public static readonly Vector256<double> ONE_SEVENTH = Vector256.Create(1.0 / 7.0);
-                public static readonly Vector256<double> ONE_NINTH = Vector256.Create(1.0 / 9.0);
-                public static readonly Vector256<double> ONE_ELEVENTH = Vector256.Create(1.0 / 11.0);
-                public static readonly Vector256<double> ONE_THIRTEENTH = Vector256.Create(1.0 / 13.0);
                 public static readonly Vector256<double> ONE = Vector256.Create(1.0);
                 public static readonly Vector256<double> LN2 = Vector256.Create(0.6931471805599453094172321214581766);
+                public static readonly Vector256<double> L1 = Vector256.Create(0.6666666666598753418813);
+                public static readonly Vector256<double> L2 = Vector256.Create(0.40000000155972106981);
+                public static readonly Vector256<double> L3 = Vector256.Create(0.285714152842158938);
+                public static readonly Vector256<double> L4 = Vector256.Create(0.22222793889691212);
+                public static readonly Vector256<double> L5 = Vector256.Create(0.181678841929303);
+                public static readonly Vector256<double> L6 = Vector256.Create(0.15584588873060);
+                public static readonly Vector256<double> L7 = Vector256.Create(0.11675575574300);
+                public static readonly Vector256<double> L8 = Vector256.Create(0.1889921862784);
             }
 
             public static class NormDist
@@ -359,14 +361,16 @@ namespace LitMath
                 public static readonly Vector512<double> POSITIVE_INFINITY = Vector512.Create(double.PositiveInfinity);
                 public static readonly Vector512<double> NEGATIVE_INFINITY = Vector512.Create(double.PositiveInfinity);
                 public static readonly Vector512<double> TWO = Vector512.Create(2.0);
-                public static readonly Vector512<double> ONE_THIRD = Vector512.Create(1.0 / 3.0);
-                public static readonly Vector512<double> ONE_FIFTH = Vector512.Create(1.0 / 5.0);
-                public static readonly Vector512<double> ONE_SEVENTH = Vector512.Create(1.0 / 7.0);
-                public static readonly Vector512<double> ONE_NINTH = Vector512.Create(1.0 / 9.0);
-                public static readonly Vector512<double> ONE_ELEVENTH = Vector512.Create(1.0 / 11.0);
-                public static readonly Vector512<double> ONE_THIRTEENTH = Vector512.Create(1.0 / 13.0);
                 public static readonly Vector512<double> ONE = Vector512.Create(1.0);
                 public static readonly Vector512<double> LN2 = Vector512.Create(0.6931471805599453094172321214581766);
+                public static readonly Vector512<double> L1 = Vector512.Create(0.6666666666598753418813);
+                public static readonly Vector512<double> L2 = Vector512.Create(0.40000000155972106981);
+                public static readonly Vector512<double> L3 = Vector512.Create(0.285714152842158938);
+                public static readonly Vector512<double> L4 = Vector512.Create(0.22222793889691212);
+                public static readonly Vector512<double> L5 = Vector512.Create(0.181678841929303);
+                public static readonly Vector512<double> L6 = Vector512.Create(0.15584588873060);
+                public static readonly Vector512<double> L7 = Vector512.Create(0.11675575574300);
+                public static readonly Vector512<double> L8 = Vector512.Create(0.1889921862784);
             }
 
             public static class NormDist
