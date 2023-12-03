@@ -1,7 +1,7 @@
 # LitMath
  A collection of AVX2 and AVX512 accelerated mathematical functions for .NET
 
- I rewrote `Exp`, `Log`, `Sin` and a few other useful functions using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4 doubles or 8 floats per core. I added the `Sqrt`, ERF function and a Normal Distribution CDF as well. On doubles, the following accuracies apply:
+ I rewrote `Exp`, `Log`, `Sin` and a few other useful functions using pure AVX intrinsics, so instead of doing one calculation per core, you can now do 4-8 doubles or 8-16 floats per core. On doubles, the following accuracies apply:
  
   - `Exp` and `Sqrt` run at double precision limits
   - `ERF` at `1e-13` 
@@ -11,7 +11,7 @@
 
  There are examples in the benchmark and tests. But here is one to get you started anyway.
 
- Calculate `n` $e^x$'s in chunks of 4 and store the result in y.
+ Calculate `n` $e^x$'s in chunks of 4 (or 8) and store the result in y.
 
  ```
 int n = 40;
@@ -21,11 +21,11 @@ Lit.Exp(in x, ref y);
  ```
  
 ## AVX512
-With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding mor AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding more AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
 
 Preliminary results have been amazing. Check out the speedups below: 7.5x for `Log` and 5.5x for `Exp`. 
 
-I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .net 8, and if your machine supports AVX512F, it will just happen under the hood.
+I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .NET 8, and if your machine supports AVX512F, it will just happen under the hood.
 
 ## Speedups
 Below is a Benchmark.net example that compares LitMath used serially and in parallel to the naive implementation and an invocation of the MKL for computing `Exp` on an `N` sized array.
