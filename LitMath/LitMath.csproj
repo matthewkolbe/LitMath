@@ -10,18 +10,16 @@
     <PackageProjectUrl>https://github.com/matthewkolbe/LitMath</PackageProjectUrl>
     <Copyright>Matthew Kolbe</Copyright>
     <RepositoryUrl>https://github.com/matthewkolbe/LitMath</RepositoryUrl>
-    <Version>0.6.4</Version>
+    <Version>0.7.0</Version>
     <Authors>Matthew Kolbe</Authors>
     <PackageId>Kolbe.$(AssemblyName)</PackageId>
-    <Description>A collection of AVX-256 accelerated mathematical functions for .NET</Description>
+    <Description>A collection of AVX2 and AVX512 accelerated mathematical functions for .NET</Description>
     <PackageTags>SIMD;Math;AVX;Intrinsics</PackageTags>
     <PackageIcon></PackageIcon>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Breaking changes from 0.5.x to most all functions. Arguments to functions are now passed with `in`, not `ref`.
-
-Adds Cosine Similarty on doubles.</PackageReleaseNotes>
+    <PackageReleaseNotes>Rolls out AVX512 dbl-precision support for Exp, Log, CDF and Sqrt.</PackageReleaseNotes>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
