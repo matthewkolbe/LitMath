@@ -21,7 +21,7 @@ Lit.Exp(in x, ref y);
  ```
  
 ## AVX512
-With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. I've added some, and I'll be adding more AVX512-accelerated features over time. Patience as my dev machine doesn't have AVX512, so testing and debugging are a little tricky. 
+With the addition of some AVX512 features in .NET 8.0, we've gone multi-platform. 
 
 Preliminary results have been amazing. Check out the speedups below: 7.5x for `Log` and 5.5x for `Exp`. 
 
