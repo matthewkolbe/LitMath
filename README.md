@@ -28,7 +28,7 @@ Preliminary results have been amazing. Check out the speedups below: 7.5x for `L
 I hide all of the implementation details of whether the function you're using is actually tapping AVX512 instructions or not, so it's best to look at the source code. But if the code has been implemented for the function you call, and if you compile in .NET 8, and if your machine supports AVX512F, it will just happen under the hood.
 
 ## Speedups
-Below is a Benchmark.net example that compares LitMath used serially and in parallel to the naive implementation for computing `Exp` on an `N` sized array.
+Below is a Benchmark.net example that compares LitMath used serially to the naive implementation for computing `Exp` on an `N` sized array.
 
 |         Type |               Method |      N |          Mean |      Error |     StdDev |
 |------------- |--------------------- |------- |--------------:|-----------:|-----------:|
